@@ -6,6 +6,14 @@ Docker is set up to run both a FastAPI and PostgreSQL container.
 Alembic files are included as references to help you understand how to modify them. However, as noted in the "Setup" section, you should remove and reinitialize these files before starting your own API project.
 
 ## Table of Contents
+- [Project Structure](#project-structure)
+- [Template Setup](#template-setup)
+    - [1. Install Dependencies with Poetry](#1-install-dependencies-with-poetry)
+    - [2. Set Up Environment Variables with dotenv](#2-set-up-environment-variables-with-dotenv)
+    - [3. Set Up Alembic Database Migrations](#3-set-up-alembic-database-migrations)
+    - [4. Run the Template with Docker](#4-run-the-template-with-docker)
+
+
 
 ## Project Structure
 This project strucure is based on [project-structure-consistent--predictable](https://github.com/zhanymkanov/fastapi-best-practices#1-project-structure-consistent--predictable) by zhanymkanov. It has been modified to use poetry and docker instead of venv.
@@ -84,17 +92,17 @@ from src.notifications import service as notification_service
 from src.posts.constants import ErrorCode as PostsErrorCode  # in case we have Standard ErrorCode in constants module of each package
 ```
 
-## Setup
+## Template Setup
 
 ### 1. Install Dependencies with Poetry
-Make sure you have [Poetry](https://python-poetry.org) installed. You can skip this part if you intend to use Docker and don't mind IDE's not giving support for the packages.
+Ensure that [Poetry](https://python-poetry.org) is installed. If you plan to use Docker and don't require IDE support for package management, you can skip this step.
 
 1. Update project dependencies, this will also create a virtualenv and install them. (100% they are outdated):
    ```bash
    poetry update
    ```
 
-3. To add or update a package:
+2. To add or update a package:
    ```bash
    poetry add <package-name>
    ```
@@ -104,7 +112,7 @@ Make sure you have [Poetry](https://python-poetry.org) installed. You can skip t
    ```
 
 ### 2. Set Up Environment Variables with dotenv
-Environment variables are managed using a `.env` file. Inside of `.env.example`, you have some necessary variables to run this project as is.
+Environment variables are handled via a `.env` file. The `.env.example` file contains the essential variables required to run this project out of the box.
 
 1. Create a `.env` file at the project root:
    ```bash
@@ -117,19 +125,19 @@ Environment variables are managed using a `.env` file. Inside of `.env.example`,
     ALEMBIC_DB_URL=postgresql://postgres:1234@{POSTGRESQL_CONTAINER_IP}:5432/postgresn
    ```
 
-The `.env` file is used by the `python-dotenv` package to load environment variables into the FastAPI app.
+The `.env` file is used by the `python-dotenv` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
 
 ### 3. Set Up Alembic Database Migrations
 1. Remove alembic example:
    ```bash
    rm -rf alembic/ alembic.ini
    ```
-1. Initialize Alembic (creates alembic/ and alembic.ini):
+2. Initialize Alembic (creates the alembic dir and alembic.ini):
    ```bash
    alembic init alembic
    ```
 
-2. Configure the `alembic/env.py` file to use your `ALEMBIC_DB_URL` from `.env`:
+3. Configure the `alembic/env.py` file to use your `ALEMBIC_DB_URL` from `.env`:
     ```python
     # Set up ALEMBIC_DB_URL from .env file
     from dotenv import load_dotenv
@@ -148,17 +156,17 @@ The `.env` file is used by the `python-dotenv` package to load environment varia
     target_metadata = Base.metadata
     ```
 
-3. Create a new migration script (u can remove --autogenerate and create the change yourself):
+4. Create a new migration script (you can remove --autogenerate and create the change yourself):
    ```bash
    alembic revision --autogenerate -m "description of changes"
    ```
 
-4. Apply the migrations:
+5. Apply the migrations:
    ```bash
    alembic upgrade {REVISION_ID}
    ```
 
-### 4. Run the Application with Docker
+### 4. Run the Template with Docker
 1. Make sure [Docker](https://docs.docker.com/) is installed on your system.
 
 2. Build and run the Docker containers:
