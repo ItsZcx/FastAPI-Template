@@ -127,7 +127,27 @@ Environment variables are handled via a `.env` file. The `.env.example` file con
 
 The `.env` file is used by the `python-dotenv` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
 
-### 3. Set Up Alembic Database Migrations
+### 3. Run the Template with Docker
+1. Make sure [Docker](https://docs.docker.com/) is installed on your system.
+
+2. Build and run the Docker containers:
+   ```bash
+   docker compose up -d
+   ```
+
+This will start both the FastAPI app and the PostgreSQL database as Docker containers.
+
+3. To stop the containers (add --volumes to remove persistent PostgeSQL data):
+   ```bash
+   docker-compose down
+   ```
+
+3. Checking logs:
+   ```bash
+   docker compose logs --follow -t
+   ```
+
+### 4. Set Up Alembic Database Migrations
 1. Remove alembic example:
    ```bash
    rm -rf alembic/ alembic.ini
@@ -151,7 +171,7 @@ The `.env` file is used by the `python-dotenv` package to load environment varia
     # Import ALL the models from the app (even if unused)
     from src.database import Base
     from src.package.models import Todos
-    ...
+    # ...
 
     # Set target_metadata
     target_metadata = Base.metadata
@@ -166,19 +186,4 @@ The `.env` file is used by the `python-dotenv` package to load environment varia
 5. Apply the migrations:
    ```bash
    poetry run alembic upgrade {REVISION_ID}
-   ```
-
-### 4. Run the Template with Docker
-1. Make sure [Docker](https://docs.docker.com/) is installed on your system.
-
-2. Build and run the Docker containers:
-   ```bash
-   docker compose up -d
-   ```
-
-This will start both the FastAPI app and the PostgreSQL database as Docker containers.
-
-3. To stop the containers (add --volumes to remove persistent PostgeSQL data):
-   ```bash
-   docker-compose down
    ```
