@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "fastapi-template"
+version = "0.1.0"
+description = "Template for a FastAPI project with Poetry, SQLAlchemy, Alembic and Docker"
+authors = ["ItsZcx <joanpaumeridaruiz@gmail.com>"]
+readme = "README.md"
+
+package-mode = false
+
+
+# Add production dependencies (ex: poetry add 'fastapi[standard]' SQLAlchemy alembic psycopg2-binary python-dotenv)
+# Add dev dependencies (ex: poetry add ruff --group=dev)
+[tool.poetry.dependencies]
+python = "^3.10"
+psycopg2-binary = "^2.9.9"
+python-dotenv = "^1.0.1"
+fastapi = "^0.115.0"
+sqlalchemy = "^2.0.35"
+alembic = "^1.13.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+####################################
+#       Custom ruff settings       #
+####################################
+
+[tool.ruff]
+# Inherit exclude patterns from ruff.toml
+extend-exclude = [".venv", ".env", "alembic"]
+
+# Other settings from ruff.toml
+fix = true
+line-length = 120
+indent-width = 4
+
+target-version = "py310"
+
+[tool.ruff.format]
+preview = false
+line-ending = "lf"
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = 110
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = []
+preview = false
+extend-ignore = []
+extend-fixable = []
+allowed-confusables = []
+explicit-preview-rules = false
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+force-single-line = true
