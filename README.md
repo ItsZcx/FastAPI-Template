@@ -51,12 +51,12 @@ fastapi-template
 │   ├── auth
 │   ├── aws
 │   └── posts
-├── .env
-├── .env.example
+├── .env.example             # Variables used/needed in this .env
 ├── .gitignore
 ├── alembic.ini
+├── compose.yaml
+├── Dockerfile
 ├── LICENSE
-├── logging.ini
 ├── poetry.lock
 ├── pyproject.toml
 └── README.md
