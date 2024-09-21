@@ -134,12 +134,13 @@ The `.env` file is used by the `python-dotenv` package to load environment varia
    ```
 2. Initialize Alembic (creates the alembic dir and alembic.ini):
    ```bash
-   alembic init alembic
+   poetry run alembic init alembic
    ```
 
 3. Configure the `alembic/env.py` file to use your `ALEMBIC_DB_URL` from `.env`:
     ```python
     # Set up ALEMBIC_DB_URL from .env file
+    import os
     from dotenv import load_dotenv
     load_dotenv()
     ALEMBIC_DB_URL = os.getenv("ALEMBIC_DB_URL")
@@ -158,12 +159,13 @@ The `.env` file is used by the `python-dotenv` package to load environment varia
 
 4. Create a new migration script (you can remove --autogenerate and create the change yourself):
    ```bash
-   alembic revision --autogenerate -m "description of changes"
+   # DATABASE HAS TO BE RUNNING!
+   poetry run alembic revision --autogenerate -m "description of changes"
    ```
 
 5. Apply the migrations:
    ```bash
-   alembic upgrade {REVISION_ID}
+   poetry run alembic upgrade {REVISION_ID}
    ```
 
 ### 4. Run the Template with Docker
