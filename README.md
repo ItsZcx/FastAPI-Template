@@ -10,8 +10,8 @@ Alembic files are included as references to help you understand how to modify th
 - [Template Setup](#template-setup)
     - [1. Install Dependencies with Poetry](#1-install-dependencies-with-poetry)
     - [2. Set Up Environment Variables with dotenv](#2-set-up-environment-variables-with-dotenv)
-    - [3. Set Up Alembic Database Migrations](#3-set-up-alembic-database-migrations)
-    - [4. Run the Template with Docker](#4-run-the-template-with-docker)
+    - [3. Run the Template with Docker](#3-run-the-template-with-docker)
+    - [4. Set Up Alembic Database Migrations](#4-set-up-alembic-database-migrations)
 
 
 
