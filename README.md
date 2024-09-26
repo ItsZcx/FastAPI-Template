@@ -122,7 +122,7 @@ Environment variables are handled via a `.env` file. The `.env.example` file con
 2. Add your environment-specific variables:
    ```bash
     DB_URL=postgresql://postgres:1234@fastapi-postgres:5432/postgres
-    ALEMBIC_DB_URL=postgresql://postgres:1234@{POSTGRESQL_CONTAINER_IP}:5432/postgresn
+    ALEMBIC_DB_URL=postgresql://postgres:1234@localhost:5432/postgresn
    ```
 
 The `.env` file is used by the `python-dotenv` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
