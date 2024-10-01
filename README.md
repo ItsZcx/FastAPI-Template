@@ -1,5 +1,5 @@
 # FastAPI Template
-A FastAPI template that integrates Poetry, Alembic, SQLAlchemy, dotenv, Docker, and PostgreSQL for a fully functional API setup.
+A FastAPI template that integrates Poetry, Alembic, SQLAlchemy, dotenv (Pydantic), Docker, and PostgreSQL for a fully functional API setup.
 
 Docker is set up to run both a FastAPI and PostgreSQL container.
 
@@ -24,7 +24,6 @@ fastapi-template
 ├── src
 │   ├── auth               # package
 │   │   ├── config.py        # local configs
-│   │   ├── constants.py     # package-specific constants
 │   │   ├── dependencies.py  # specific auth router dependencies
 │   │   ├── exceptions.py    # package-specific errors
 │   │   ├── models.py        # database models
@@ -35,12 +34,11 @@ fastapi-template
 │   ├── aws
 │   │   ├── client.py        # client model for external service communication
 │   │   ├── config.py
-│   │   ├── constants.py
 │   │   ├── exceptions.py
 │   │   ├── schemas.py
 │   │   └── utils.py
 │   └── package            # copy paste package
-│   │   ├── constants.py
+│   │   ├── config.py
 │   │   ├── dependencies.py
 │   │   ├── exceptions.py
 │   │   ├── models.py
@@ -76,20 +74,19 @@ fastapi-template
 
 2. Each package has its own router, schemas, models, etc.
    1. `config.py` - e.g. specific env vars
-   2. `constants.py` - module specific constants and error codes
-   3. `dependencies.py` - router dependencies
-   4. `exceptions.py` - module specific exceptions, e.g. `PostNotFound`, `InvalidUserData`
-   5. `models.py` - for database models
-   6. `router.py` - is a core of each module with all the endpoints
-   7. `schemas.py` - for pydantic models
-   8. `service.py` - module specific business logic
-   9. `utils.py` - non-business logic functions, e.g. response normalization, data enrichment, etc.
+   2. `dependencies.py` - router dependencies
+   3. `exceptions.py` - module specific exceptions, e.g. `PostNotFound`, `InvalidUserData`
+   4. `models.py` - for database models
+   5. `router.py` - is a core of each module with all the endpoints
+   6. `schemas.py` - for pydantic models
+   7. `service.py` - module specific business logic
+   8. `utils.py` - non-business logic functions, e.g. response normalization, data enrichment, etc.
 
-3. When package requires services or dependencies or constants from other packages - import them with an explicit module name
+3. When package requires services or dependencies or configs from other packages - import them with an explicit module name
 ```python
-from src.auth import constants as auth_constants
+from src.auth import config as auth_config
 from src.notifications import service as notification_service
-from src.posts.constants import ErrorCode as PostsErrorCode  # in case we have Standard ErrorCode in constants module of each package
+from src.posts.config import ErrorCode as PostsErrorCode  # in case we have Standard ErrorCode in config module of each package
 ```
 
 ## Template Setup
@@ -122,17 +119,12 @@ Environment variables are handled via a `.env` file. The `.env.example` file con
 2. Add your environment-specific variables:
    ```bash
     DB_URL=postgresql://postgres:1234@fastapi-postgres:5432/postgres
-    ALEMBIC_DB_URL=postgresql://postgres:1234@{POSTGRESQL_CONTAINER_IP}:5432/postgresn
+    ALEMBIC_DB_URL=postgresql://postgres:1234@localhost:5432/postgresn
    ```
 
-You can use the following command to find the IP (in the host machine) of the postgresql instance.
-   ```bash
-    docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fastapi-postgres
-   ```
+The `.env` file is used by the `pydantic-settings` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
 
-The `.env` file is used by the `python-dotenv` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
-
-### 3. Run the Template with Docker
+### 3. Run The Template with Docker
 1. Make sure [Docker](https://docs.docker.com/) is installed on your system.
 
 2. Build and run the Docker containers:

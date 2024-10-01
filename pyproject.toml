@@ -8,15 +8,15 @@ readme = "README.md"
 package-mode = false
 
 
-# Add production dependencies (ex: poetry add 'fastapi[standard]' SQLAlchemy alembic psycopg2-binary python-dotenv)
+# Add production dependencies (ex: poetry add 'fastapi[standard]')
 # Add dev dependencies (ex: poetry add ruff --group=dev)
 [tool.poetry.dependencies]
 python = "^3.10"
 psycopg2-binary = "^2.9.9"
-python-dotenv = "^1.0.1"
 fastapi = {extras = ["standard"], version = "^0.115.0"}
 sqlalchemy = "^2.0.35"
 alembic = "^1.13.2"
+pydantic-settings = "^2.5.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"

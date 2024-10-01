@@ -7,11 +7,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 
-from src.config import DB_URL
+from src.config import src_setting
 
-SQLALCHEMY_DATABASE_URL = DB_URL
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(src_setting.DB_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
