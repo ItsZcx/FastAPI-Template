@@ -17,6 +17,7 @@ fastapi = {extras = ["standard"], version = "^0.115.0"}
 sqlalchemy = "^2.0.35"
 alembic = "^1.13.2"
 pydantic-settings = "^2.5.2"
+pydantic = "^2.9.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"
@@ -25,9 +26,9 @@ ruff = "^0.6.5"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-####################################
+#==================================#
 #       Custom ruff settings       #
-####################################
+#==================================#
 
 [tool.ruff]
 # Inherit exclude patterns from ruff.toml

@@ -122,8 +122,8 @@ Environment variables are handled via a `.env` file. The `.env.example` file con
     ALEMBIC_DB_URL=postgresql://postgres:1234@localhost:5432/postgresn
    ```
 
-The `.env` file is used by the `pydantic-settings` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
 
+The `.env` file is used by the `pydantic-settings` package to load environment variables into the FastAPI application. To locate the PostgreSQL container's IP address, inspect the Docker network that is created.
 ### 3. Run The Template with Docker
 1. Make sure [Docker](https://docs.docker.com/) is installed on your system.
 
