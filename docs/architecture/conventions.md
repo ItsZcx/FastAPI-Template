@@ -93,8 +93,8 @@ Key `pyproject.toml` [ruff] settings you inherit:
 * `extend-exclude = [".venv", ".env", "alembic"]` — Alembic versions are conventionally **not** linted, but keep them neat anyway.
 
 ```bash
-poetry run ruff check .         # report + autofix
-poetry run ruff format .        # format files
+uv run ruff check .         # report + autofix
+uv run ruff format .        # format files
 ```
 
 ## 🧪 Test conventions
@@ -108,10 +108,10 @@ poetry run ruff format .        # format files
 ## ✔️ Before you open a PR
 
 ```bash
-poetry run pre-commit run --all-files   # if pre-commit installed
-poetry run ruff check .
-poetry run ruff format --check .
-poetry run pytest
+uv run pre-commit run --all-files   # if pre-commit installed
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest
 ```
 
 Ensure your branch merges only code that passes CI (lint + format + tests). Typo-only diffs fail too — the docs are reviewed just like code.

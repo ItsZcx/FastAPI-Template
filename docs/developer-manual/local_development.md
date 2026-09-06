@@ -1,24 +1,39 @@
 # Local Development
 
-> 🎯 **Goal**: run the API on your host machine (outside Docker) with Poetry for fast iteration and IDE support.
+> 🎯 **Goal**: run the API on your host machine (outside Docker) with uv for fast iteration and IDE support.
 
 ## ✅ Prerequisites
 
-* [Python](https://www.python.org/) 3.10+
-* [Poetry](https://python-poetry.org/) 2.x
+* [uv](https://docs.astral.sh/uv/) (Python 3.10+ is installed and managed by uv as needed)
 * A running PostgreSQL instance. The easiest path is to start only the database container:
 
 ```bash
 docker compose up -d postgres
 ```
 
-## 1. Install dependencies
+## 1. Install uv
+
+If you haven't already (the Docker image and CI install it for you):
 
 ```bash
-poetry install
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-## 2. Configure `.env`
+Alternatively `pip install uv`. Restart your shell (or re-source your profile) afterward to put `uv` on your `PATH`.
+
+## 2. Install dependencies
+
+```bash
+uv sync
+```
+
+This reads `pyproject.toml` + `uv.lock`, creates a `.venv`, and installs the runtime **and** dev (Ruff, pytest, pre-commit) dependencies.
+
+## 3. Configure `.env`
 
 Create your environment file (see [Configuration](configuration.md)):
 
@@ -35,56 +50,57 @@ ALEMBIC_DB_URL=postgresql://postgres:1234@localhost:5432/postgres
 
 > ℹ️ Inside Docker the host service is reachable as `fastapi-postgres`; when you run the app on your host it is `localhost`. Alembic runs on the host, so it always wants the `localhost` URL.
 
-## 3. Apply database migrations
+## 4. Apply database migrations
 
 Migrations are managed with Alembic (PostgreSQL must be running):
 
 ```bash
-poetry run alembic upgrade head
+uv run alembic upgrade head
 ```
 
 See [Database & Migrations](database_migrations.md) for full details.
 
-## 4. Run the development server
+## 5. Run the development server
 
 ```bash
-poetry run uvicorn src.main:app --reload --port 8080
+uv run uvicorn src.main:app --reload --port 8080
 ```
 
 The `--reload` flag gives you hot reload while editing.
 
-> Alternatively `poetry run fastapi run src/main.py --reload --port 8080` — the Docker image uses the `fastapi` CLI.
+> Alternatively `uv run fastapi run src/main.py --reload --port 8080` — the Docker image uses the `fastapi` CLI.
 
-## 5. Verify
+## 6. Verify
 
 ```bash
 curl http://localhost:8080/healthz
 curl http://localhost:8080/docs        # Swagger UI
 ```
 
+> ℹ️ `uv run` executes a command inside the project's `.venv`, so you rarely need to `activate` it. To run an interactive shell you can `uv shell` (or `source .venv/bin/activate` on Unix / `.venv\Scripts\activate` on Windows).
+
 ## 🧹 Quality gates (run these before pushing)
 
 ```bash
-poetry run ruff check .         # lint
-poetry run ruff format .        # format
-poetry run ruff format --check .   # (CI) verify formatting only
-poetry run pytest -q            # tests
+uv run ruff check .         # lint
+uv run ruff format .        # format
+uv run ruff format --check .   # (CI) verify formatting only
+uv run pytest -q            # tests
 ```
 
 If you installed pre-commit, formatting is also enforced automatically on commit:
 
 ```bash
-poetry run pre-commit install
+uv run pre-commit install
 ```
-
-> On **Windows** (PowerShell), wrap these commands or use `poetry shell` first. `host.docker.internal` can substitute for `localhost` only in edge Docker-on-Windows setups; the Compose setup here avoids that need.
 
 ## 📦 Managing dependencies
 
 ```bash
-poetry add <package>                # add a runtime dependency
-poetry add --group=dev <package>    # add a dev dependency (ruff, pytest, pre-commit)
-poetry update                       # refresh the lock file
+uv add <package>                        # add a runtime dependency
+uv add --group dev <package>            # add a dev dependency (ruff, pytest, pre-commit)
+uv sync --upgrade                       # refresh versions within bounds
+uv lock                                 # re-resolve & update the lock file
 ```
 
-> ⚠️ **Poetry version note**: this repository uses a Poetry **2.x** lock file. Keep the image pin (`poetry==2.3.2` in the `Dockerfile`) and the CI pin in sync with the tool you use locally, or you may hit lock-file parse errors.
+> ⚠️ **uv version note**: the Docker image (`uv==0.12.10`) and CI (`astral-sh/setup-uv`, pinned `0.12.10`) should match a version you use locally so the lock file stays compatible.

@@ -15,7 +15,7 @@
 | 🪵 Logging | structlog — console in dev, JSON in prod, with per-request `X-Request-ID` |
 | 🩺 Health | `/healthz` (liveness) and `/readyz` (real DB probe) |
 | 📄 Pagination | reusable cursor-pagination `Page[T]` envelope |
-| 🗄️ Data | PostgreSQL + Alembic migrations, Poetry and Docker |
+| 🗄️ Data | PostgreSQL + Alembic migrations, uv and Docker |
 | ✅ Quality | pytest suite, Ruff, pre-commit, GitHub Actions CI |
 
 ## 🧭 Where to go next

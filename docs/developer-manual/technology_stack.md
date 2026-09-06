@@ -4,10 +4,10 @@ This page documents the technologies, tools, and runtime requirements used by th
 
 ## 🧰 Runtime & Languages
 
-* **Language**: [Python](https://www.python.org/) `^3.10`\
-  The template targets modern Python. It is fully compatible with 3.10+ (the CI image and Docker image use 3.10; the build has also been validated on newer versions).
-* **Package manager**: [Poetry](https://python-poetry.org/) `2.x`\
-  Used for dependency resolution and virtual environments. The `pyproject.toml` declares a non-package project (`package-mode = false`).
+* **Language**: [Python](https://www.python.org/) `>=3.10`\
+  The template targets modern Python. It runs on 3.10+ (the CI and Docker images use 3.10; local development often uses a newer interpreter that uv fetches automatically).
+* **Package manager**: [uv](https://docs.astral.sh/uv/) `0.12.x`\
+  Used for dependency resolution, environments, and running commands. The project is a **non-package application** declared with a PEP 621 `[project]` table (no build backend, so `uv` installs dependencies without packaging the repo).
 
 ## 🖥️ Web Framework & APIs
 
@@ -39,7 +39,7 @@ This page documents the technologies, tools, and runtime requirements used by th
 
 | Purpose              | Tool                                         | Notes                                         |
 | -------------------- | -------------------------------------------- | --------------------------------------------- |
-| Linting & formatting | [Ruff](https://docs.astral.sh/ruff/) `0.6.7` | configured for 3.10, 120 char lines, auto-fix |
+| Linting & formatting | [Ruff](https://docs.astral.sh/ruff/) `0.6.x` | configured for 3.10, 120 char lines, auto-fix |
 | Testing              | [pytest](https://docs.pytest.org/) `9.x`     | against a throwaway PostgreSQL test database  |
 | Pre-commit           | [pre-commit](https://pre-commit.com/)        | runs Ruff on every commit                     |
 | CI                   | GitHub Actions                               | see [Deployment](deployment.md)               |
@@ -50,25 +50,27 @@ This page documents the technologies, tools, and runtime requirements used by th
   * `fastapi` — built from the `Dockerfile`, serves the app on host port `8080`.
   * `postgres` — PostgreSQL 16, host port `5432`.
 * Official image bases: `python:3.10-alpine3.20`.
-* Poetry image pin: the Dockerfile installs Poetry `2.x` (the lock file is Poetry 2.x format).
+* uv manager pin: the Dockerfile installs `uv==0.12.10` and installs deps from the committed `uv.lock` (`uv sync --no-dev --frozen`).
 
 ## ✅ Compatibility matrix
 
-| Component  | Version (as authored) | Notes                   |
+| Component  | Constraint / resolved | Notes                   |
 | ---------- | --------------------- | ----------------------- |
-| Python     | `^3.10`               | CI + Docker use 3.10    |
-| FastAPI    | `0.115.0`             |                         |
-| starlette  | `0.38.5`              |                         |
-| SQLAlchemy | `2.0.35`              | classic `Column` models |
-| Alembic    | `1.13.2`              |                         |
-| Pydantic   | `2.9.2`               | `ConfigDict` era        |
+| Python     | `>=3.10`              | CI + Docker use 3.10    |
+| FastAPI    | `~=0.115`            | `fastapi[standard]`     |
+| SQLAlchemy | `2.0.x`              | classic `Column` models |
+| Alembic    | `1.13+`               |                         |
+| Pydantic   | `2.9+`                | `ConfigDict` era        |
 | structlog  | `26.x`                |                         |
-| slowapi    | `0.1.10`              |                         |
-| PyJWT      | `2.13.0`              |                         |
-| pytest     | `9.x`                 |                         |
-| Ruff       | `0.6.7`               |                         |
+| slowapi    | `0.1.x`               |                         |
+| PyJWT      | `2.13+`               |                         |
+| pytest     | `9.x`                 |                          |
+| Ruff       | `0.6.x`               |                          |
+| pre-commit | `4.x`                 |                          |
 
-> 💡 **Keeping it evergreen**: run `poetry update` to refresh dependencies, exactly as the README advises. If a major library (FastAPI, Pydantic, SQLAlchemy) jumps a version, re-run `pytest` and `ruff` to catch breaking changes before committing.
+> ℹ️ Precise locked versions are pinned in `uv.lock`. View them with `uv tree`.
+
+> 💡 **Keeping it evergreen**: run `uv sync --upgrade` (or `uv lock --upgrade`) to refresh dependencies within the ranges above. If a major library (FastAPI, Pydantic, SQLAlchemy) jumps a version, re-run `uv run pytest` and `uv run ruff` to catch breaking changes before committing.
 
 ## 📌 Notes
 

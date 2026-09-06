@@ -5,17 +5,17 @@
 ## 1. Prerequisites
 
 * [Docker](https://www.docker.com/) with Docker Compose (modern Docker Desktop includes it).
-* Optionally [Poetry](https://python-poetry.org/) only if you want IDE/package support locally (see [Local Development](local_development.md)).
+* Optionally [uv](https://docs.astral.sh/uv/) only if you want IDE/package support locally (see [Local Development](local_development.md)).
 
-## 2. Install dependencies with Poetry
+## 2. Install dependencies with uv
 
 > Setup of the virtual environment and dependencies is optional but recommended. Step 2 can be skipped if you only plan to use Docker.
 
 ```bash
-poetry install
+uv sync
 ```
 
-This creates the project virtualenv and installs all runtime **and** dev dependencies (Ruff, pytest, pre-commit).
+This creates the project's `.venv` and installs all runtime **and** dev dependencies (Ruff, pytest, pre-commit).
 
 ## 3. Create your `.env`
 

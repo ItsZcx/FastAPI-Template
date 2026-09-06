@@ -28,9 +28,9 @@ tests/
 
 ```bash
 docker compose up -d postgres   # the test DB reuses this PostgreSQL
-poetry run pytest               # all tests
-poetry run pytest -q            # quiet
-poetry run pytest tests/auth    # a single directory
+uv run pytest               # all tests
+uv run pytest -q            # quiet
+uv run pytest tests/auth    # a single directory
 ```
 
 > pytest orchestrates **database creation** for you, so you don't `createdb` manually. Set `TEST_DB_URL` (`.env`/env) only if you want a different name/location.
@@ -80,8 +80,8 @@ For `db`-level or dependency-level tests, inject the `db` fixture in the same wa
 The template does not enforce a numeric coverage gate — the priority is meaningful coverage of auth (happy paths **and** failure modes) plus the health/pagination behaviours. To measure locally:
 
 ```bash
-poetry run pytest --cov=src                                  # if you add pytest-cov
-poetry run pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src                                  # if you add pytest-cov
+uv run pytest --cov=src --cov-report=term-missing
 ```
 
 ## ✅ When to add a test

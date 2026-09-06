@@ -1,35 +1,28 @@
-[tool.poetry]
+[project]
 name = "fastapi-template"
 version = "0.1.0"
-description = "Template for a FastAPI project with Poetry, SQLAlchemy, Alembic and Docker"
-authors = ["ItsZcx <joanpaumeridaruiz@gmail.com>"]
+description = "Template for a FastAPI project with UV, SQLAlchemy, Alembic and Docker"
 readme = "README.md"
+authors = [{ name = "ItsZcx", email = "joanpaumeridaruiz@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "alembic>=1.13.2,<2.0.0",
+    "fastapi[standard]>=0.115.0,<0.116.0",
+    "psycopg2-binary>=2.9.9,<3.0.0",
+    "pydantic>=2.9.2,<3.0.0",
+    "pydantic-settings>=2.5.2,<3.0.0",
+    "pyjwt>=2.13.0,<3.0.0",
+    "slowapi>=0.1.10,<0.2.0",
+    "sqlalchemy>=2.0.35,<3.0.0",
+    "structlog>=26.1.0,<27.0.0",
+]
 
-package-mode = false
-
-
-# Add production dependencies (ex: poetry add 'fastapi[standard]')
-# Add dev dependencies (ex: poetry add ruff --group=dev)
-[tool.poetry.dependencies]
-python = "^3.10"
-psycopg2-binary = "^2.9.9"
-fastapi = {extras = ["standard"], version = "^0.115.0"}
-sqlalchemy = "^2.0.35"
-alembic = "^1.13.2"
-pydantic-settings = "^2.5.2"
-pydantic = "^2.9.2"
-pyjwt = "^2.13.0"
-slowapi = "^0.1.10"
-structlog = "^26.1.0"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.6.5"
-pytest = "^9.1.1"
-pre-commit = "^4.6.2"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2,<5.0.0",
+    "pytest>=9.1.1,<10.0.0",
+    "ruff>=0.6.5,<0.7.0",
+]
 
 #==================================#
 #       Custom ruff settings       #

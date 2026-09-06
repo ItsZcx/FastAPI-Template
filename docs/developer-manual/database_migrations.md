@@ -40,19 +40,19 @@ def get_items(db: db_dependency, ...):
 
 ```bash
 # print current revision
-poetry run alembic current
+uv run alembic current
 
 # show available heads
-poetry run alembic heads
+uv run alembic heads
 
 # create a new migration from model changes (DB MUST be running)
-poetry run alembic revision --autogenerate -m "describe the change"
+uv run alembic revision --autogenerate -m "describe the change"
 
 # apply all pending migrations
-poetry run alembic upgrade head
+uv run alembic upgrade head
 
 # roll back one step
-poetry run alembic downgrade -1
+uv run alembic downgrade -1
 ```
 
 ### Migration history in this repo
@@ -70,7 +70,7 @@ The shipped migrations are a useful reference but not production history. For a 
 
 ```bash
 rm -rf alembic/ alembic.ini
-poetry run alembic init alembic
+uv run alembic init alembic
 ```
 
 Then reconfigure `alembic/env.py` to load `ALEMBIC_DB_URL`, import your models, and set `target_metadata`. The rules above still apply.
@@ -101,8 +101,8 @@ Reference implementation milestones:
 
 1. Change the model(s) in `src/<package>/models.py`.
 2. Make sure the model is imported by `alembic/env.py`.
-3. `poetry run alembic revision --autogenerate -m "what changed"`.
+3. `uv run alembic revision --autogenerate -m "what changed"`.
 4. **Review** the generated migration in `alembic/versions/…`.
-5. `poetry run alembic upgrade head`.
+5. `uv run alembic upgrade head`.
 
 > ⚠️ Always start the PostgreSQL container before running any migration command.

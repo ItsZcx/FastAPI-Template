@@ -35,17 +35,19 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
-        run: pip install poetry==2.3.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.10"
 
       - name: Install dependencies
-        run: poetry install
+        run: uv sync --frozen
 
       - name: Ruff lint
-        run: poetry run ruff check .
+        run: uv run ruff check .
 
       - name: Ruff format check
-        run: poetry run ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Run tests
-        run: poetry run pytest -q
+        run: uv run pytest -q

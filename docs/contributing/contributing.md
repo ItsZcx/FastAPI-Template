@@ -64,16 +64,16 @@ docs/7-clarify-quickstart
 
 > Commits in this repo's history already follow this (`feat: add template auth`, `fix: Docker errors …`) — keep it that way.
 
-## 🧑‍💻 Local setup (train to dev quickly)
+## 🧑‍💻 Local setup (start dev quickly)
 
 See [Local Development](../developer-manual/local_development.md) for a full walkthrough. Minimum:
 
 ```bash
-poetry install
+uv sync
 cp .env.example .env
 docker compose up -d postgres
-poetry run alembic upgrade head
-poetry run uvicorn src.main:app --reload --port 8080
+uv run alembic upgrade head
+uv run uvicorn src.main:app --reload --port 8080
 ```
 
 > **Tip**: read the [Conventions](../architecture/conventions.md) page before touching code — formatting, Pydantic v2 style, and ORM style are all covered there.
@@ -81,15 +81,15 @@ poetry run uvicorn src.main:app --reload --port 8080
 ## 🧪 Before you open the PR
 
 ```bash
-poetry run ruff check .
-poetry run ruff format --check .
-poetry run pytest               # existing + your new tests
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest               # existing + your new tests
 ```
 
 Install the pre-commit hooks to catch issues on every `git commit`:
 
 ```bash
-poetry run pre-commit install
+uv run pre-commit install
 ```
 
 ## 🔁 Checklist for a PR to `main`

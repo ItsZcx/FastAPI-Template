@@ -1,6 +1,6 @@
 # FastAPI Template
 
-A **production-oriented FastAPI template** for building modern backends quickly. It wires together Poetry, SQLAlchemy, Alembic, PostgreSQL, and Docker, and pre-integrates the cross-cutting features most APIs need so you can focus on your domain logic.
+A **production-oriented FastAPI template** for building modern backends quickly. It wires together uv, SQLAlchemy, Alembic, PostgreSQL, and Docker, and pre-integrates the cross-cutting features most APIs need so you can focus on your domain logic.
 
 > 📚 **Documentation**: the full, always-up-to-date docs live on **GitBook** → **[https://zcx.gitbook.io/fastapi-template](https://zcx.gitbook.io/fastapi-template)**. The source for those docs is in [`docs/`](./docs) in this repository (mapped onto the site by `docs/gitbook-docs.yaml`).
 
@@ -12,7 +12,7 @@ A **production-oriented FastAPI template** for building modern backends quickly.
 - 🌐 **CORS & security headers** — env-driven
 - 🩺 **Health checks** — `/healthz` (liveness) and `/readyz` (DB readiness)
 - 📄 **Cursor pagination** — reusable `Page[T]` envelope
-- 🗄️ **PostgreSQL + Alembic** migrations, bundled with Poetry and Docker
+- 🗄️ **PostgreSQL + Alembic** migrations, bundled with uv and Docker
 - 🛡️ **Quality gates** — `src/core/` structure, Ruff, pre-commit, GitHub Actions CI
 - 🧪 **Testing** — pytest against an isolated PostgreSQL test database
 
@@ -35,8 +35,11 @@ A **production-oriented FastAPI template** for building modern backends quickly.
 ## 🚀 Quickstart (Docker)
 
 ```bash
+# 0. install uv (https://docs.astral.sh/uv/)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # 1. install runtime & dev dependencies
-poetry install
+uv sync
 
 # 2. create your environment file
 cp .env.example .env
@@ -63,7 +66,7 @@ For local (non-Docker) development, environment variables, database migrations, 
 
 ## 🧰 Tech stack
 
-[Python](https://www.python.org/) 3.10+ · [FastAPI](https://fastapi.dev/) · [SQLAlchemy](https://www.sqlalchemy.org/) 2.0 · [Alembic](https://alembic.sqlalchemy.org/) · [PostgreSQL](https://www.postgresql.org/) · [Poetry](https://python-poetry.org/) · [Docker](https://www.docker.com/) · [Pydantic v2](https://docs.pydantic.dev/) · [PyJWT](https://pyjwt.readthedocs.io/) · [structlog](https://www.structlog.org/) · [slowapi](https://github.com/laurentS/slowapi) · [Ruff](https://docs.astral.sh/ruff/) · [pytest](https://docs.pytest.org/)
+[Python](https://www.python.org/) 3.10+ · [FastAPI](https://fastapi.dev/) · [SQLAlchemy](https://www.sqlalchemy.org/) 2.0 · [Alembic](https://alembic.sqlalchemy.org/) · [PostgreSQL](https://www.postgresql.org/) · [uv](https://docs.astral.sh/uv/) · [Docker](https://www.docker.com/) · [Pydantic v2](https://docs.pydantic.dev/) · [PyJWT](https://pyjwt.readthedocs.io/) · [structlog](https://www.structlog.org/) · [slowapi](https://github.com/laurentS/slowapi) · [Ruff](https://docs.astral.sh/ruff/) · [pytest](https://docs.pytest.org/)
 
 ## License
 

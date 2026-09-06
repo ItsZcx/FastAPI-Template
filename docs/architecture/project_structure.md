@@ -4,7 +4,7 @@
 
 ## 🌳 The big idea
 
-The layout is based on [zhanymkanov/fastapi-best-practices → consistent & predictable structure](https://github.com/zhanymkanov/fastapi-best-practices#1-project-structure-consistent--predictable), adapted to Poetry + Docker. The motto:
+The layout is based on [zhanymkanov/fastapi-best-practices → consistent & predictable structure](https://github.com/zhanymkanov/fastapi-best-practices#1-project-structure-consistent--predictable), adapted to uv + Docker. The motto:
 
 > **Every domain gets its own folder; everything reusable lives in `core`; the module that "does a thing" also owns its models, schemas and endpoints.**
 
@@ -22,8 +22,8 @@ fastapi-template
 ├── src/                          # source of the application
 ├── tests/                        # pytest suite (mirrors src package layout)
 ├── .env.example                  # documented env variables
-├── pyproject.toml                # Poetry manifest + Ruff + pytest config
-├── poetry.lock
+├── pyproject.toml                # uv manifest + Ruff + pytest config
+├── uv.lock
 └── README.md
 ```
 

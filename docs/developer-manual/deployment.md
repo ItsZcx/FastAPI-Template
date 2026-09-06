@@ -8,7 +8,7 @@ This page explains how the repository is built, tested, and prepared for deploym
 
 | Asset                      | Purpose                                                           |
 | -------------------------- | ----------------------------------------------------------------- |
-| `Dockerfile`               | Builds the API image (Poetry 2.x, runtime deps only).             |
+| `Dockerfile`               | Builds the API image (uv, runtime deps only).                 |
 | `compose.yaml`             | Runs `fastapi` (port `8080`) + `postgres` (port `5432`).          |
 | `.github/workflows/ci.yml` | Lint + format + tests on every push/PR.                           |
 | `alembic/`                 | Database schema migrations, applied on the host before/at deploy. |
@@ -17,17 +17,17 @@ This page explains how the repository is built, tested, and prepared for deploym
 
 ```dockerfile
 FROM python:3.10-alpine3.20
-ENV PYTHONUNBUFFERED=1 POETRY_VIRTUALENVS_CREATE=false
-RUN pip install --no-cache-dir poetry==2.3.2
-RUN poetry install --without dev --no-root   # runtime deps only
+ENV PYTHONUNBUFFERED=1 UV_NO_CACHE=1
+RUN pip install --no-cache-dir uv==0.12.10
+RUN uv sync --no-dev --frozen   # runtime deps only, from the committed lock
 COPY .env ./
-CMD ["poetry", "run", "fastapi", "run", "src/main.py", "--reload", "--port", "8080"]
+CMD ["uv", "run", "--frozen", "fastapi", "run", "src/main.py", "--reload", "--port", "8080"]
 ```
 
 Key points:
 
-* Installs **runtime** dependencies only (`--without dev`) — Ruff, pytest & pre-commit never ship to production.
-* Copies `poetry.lock` too, so the image is reproducible from the lock file.
+* Installs **runtime** dependencies only (`--no-dev`) — Ruff, pytest & pre-commit never ship to production.
+* `--frozen` installs exactly from the committed `uv.lock`, so the image is reproducible.
 * The `--reload` flag in the `CMD` is development-oriented; for production you will typically drop `--reload` (and may add `--workers` behind a load balancer).
 
 > ⚠️ The image prepares port `8080`. Route external traffic there (or remap via Compose as `compose.yaml` does).
@@ -36,13 +36,13 @@ Key points:
 
 `.github/workflows/ci.yml` triggers on **push and pull_request**:
 
-| Stage                | Command                            | Purpose                     |
-| -------------------- | ---------------------------------- | --------------------------- |
-| Provision PostgreSQL | `postgres:16.2-alpine` service     | gives tests a real database |
-| Install deps         | `poetry install`                   | Poetry `2.3.2`              |
-| Ruff lint            | `poetry run ruff check .`          | code style/correctness      |
-| Ruff format          | `poetry run ruff format --check .` | formatting                  |
-| Tests                | `poetry run pytest -q`             | runs the full suite         |
+| Stage                | Command                         | Purpose                     |
+| -------------------- | ------------------------------- | --------------------------- |
+| Provision PostgreSQL | `postgres:16.2-alpine` service  | gives tests a real database |
+| Install uv & deps    | `uv sync --frozen`              | uv `0.12.10`                |
+| Ruff lint            | `uv run ruff check .`           | code style/correctness      |
+| Ruff format          | `uv run ruff format --check .`  | formatting                  |
+| Tests                | `uv run pytest -q`              | runs the full suite         |
 
 Required environment (provided as workflow `env`): `DB_URL`, `TEST_DB_URL`, `AUTH_SECRET_KEY`.
 
@@ -79,7 +79,7 @@ There is no single "correct" host for a template; pick one and apply the same st
 2. **Set real environment variables** — never rely on a committed `.env`. Inject `DB_URL`, `AUTH_SECRET_KEY`, `ENVIRONMENT=production`, and tune `LOG_FORMAT=json`, `CORS_ORIGINS`, `LOG_LEVEL` via your platform (env vars **override** the `.env` file thanks to `pydantic-settings`).
 3. **Run Alembic migrations** once, pointing at the real database:
    ```bash
-   poetry run alembic upgrade head
+   uv run alembic upgrade head
    ```
 4. **Start the image** and expose port `8080`.
 5. **Configure load balancing / TLS** in front; set `ENVIRONMENT=production` so `Strict-Transport-Security` is added.
