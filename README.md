@@ -2,7 +2,7 @@
 
 A **production-oriented FastAPI template** for building modern backends quickly. It wires together Poetry, SQLAlchemy, Alembic, PostgreSQL, and Docker, and pre-integrates the cross-cutting features most APIs need so you can focus on your domain logic.
 
-> 📚 **Documentation**: the full, always-up-to-date docs live on **GitBook** → **[https://zcx.gitbook.io/zcx-docs](https://zcx.gitbook.io/zcx-docs)**. The source for those docs is in [`docs/`](./docs) in this repository (mapped onto the site by `docs/gitbook-docs.yaml`).
+> 📚 **Documentation**: the full, always-up-to-date docs live on **GitBook** → **[https://zcx.gitbook.io/fastapi-template](https://zcx.gitbook.io/fastapi-template)**. The source for those docs is in [`docs/`](./docs) in this repository (mapped onto the site by `docs/gitbook-docs.yaml`).
 
 ## ✨ Highlights
 
@@ -50,13 +50,13 @@ curl http://localhost:8080/healthz   # {"status":"ok"}
 open http://localhost:8080/docs      # Swagger UI
 ```
 
-For local (non-Docker) development, environment variables, database migrations, and the test suite, head to the **[GitBook docs → Developer Manual](https://zcx.gitbook.io/zcx-docs)**.
+For local (non-Docker) development, environment variables, database migrations, and the test suite, head to the **[GitBook docs → Developer Manual](https://zcx.gitbook.io/fastapi-template)**.
 
 ## 📖 Where to find what
 
 | Need | Go to |
 | --- | --- |
-| Full documentation | [zcx.gitbook.io/zcx-docs](https://zcx.gitbook.io/zcx-docs) |
+| Full documentation | [zcx.gitbook.io/fastapi-template](https://zcx.gitbook.io/fastapi-template) |
 | Setup, config, migrations | **Intro → Developer Manual** (Quickstart, Local Development, Configuration) |
 | How the code is organised & its conventions | **Architecture** (Project Structure, Conventions, Auth, Pagination, Testing) |
 | Report/contribute | **Contributing** section of the docs + issues/PRs |

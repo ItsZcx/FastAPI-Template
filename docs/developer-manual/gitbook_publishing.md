@@ -2,7 +2,7 @@
 
 These Markdown pages are published to **[GitBook](https://www.gitbook.com)** through GitBook's **Site Git Sync**. This guide explains how the repository maps onto the published book and how to keep editing consistent.
 
-> 🎯 **Outcome**: content lives in this repository under `docs/`; pushing to `main` republishes it automatically at your GitBook site URL (e.g. `https://zcx.gitbook.io/zcx-docs`).
+> 🎯 **Outcome**: content lives in this repository under `docs/`; pushing to `main` republishes it automatically at your GitBook site URL (e.g. `https://zcx.gitbook.io/fastapi-template`).
 
 ## 🧩 How this documentation is organised
 
@@ -43,7 +43,7 @@ Notes on conventions:
 2. **Navigation** — `docs/SUMMARY.md` at that directory defines the book's order and groups.
 3. **Content** — the Markdown files are read as pages of that one space.
 4. **Sync** — pushing to the synced branch republishes. With auto-publish on, a merge to `main` updates the live site.
-5. **Confirm** — open your site (e.g. `https://zcx.gitbook.io/zcx-docs`) and check the pages and links; trigger a re-sync from GitBook if needed.
+5. **Confirm** — open your site (e.g. `https://zcx.gitbook.io/fastapi-template`) and check the pages and links; trigger a re-sync from GitBook if needed.
 
 > ℹ️ GitBook may have created/generated its own `SUMMARY.md` when you changed navigation in the editor. Keep the file under Git Sync pointed at the one you edit here to avoid conflicts.
 
