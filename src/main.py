@@ -13,6 +13,7 @@ from src.auth.exceptions import UserNotFound
 from src.auth.router import router as auth_router
 from src.core.config import src_setting
 from src.core.logging import configure_logging
+from src.core.logging import get_logger
 from src.core.middleware import RequestIDMiddleware
 from src.core.middleware import SecurityHeadersMiddleware
 from src.core.middleware import get_cors_origins
@@ -65,6 +66,14 @@ async def auth_error_handler(request: Request, error: AuthError):
     status_code = STATUS_BY_AUTH_ERROR[type(error)]
     headers = {"WWW-Authenticate": "Bearer"} if status_code == 401 else None
     return JSONResponse(status_code=status_code, content={"detail": str(error)}, headers=headers)
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, error: Exception):
+    # Safety net: log the full traceback but respond with an opaque 500 so no
+    # internal detail leaks to the client. Bug reports should reference logs.
+    get_logger("app").exception("unhandled error", url=str(request.url))
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 @app.get("/")

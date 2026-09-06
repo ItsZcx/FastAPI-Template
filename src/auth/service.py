@@ -1,4 +1,5 @@
 # package-specific business logic
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.auth import exceptions as auth_exceptions
@@ -21,8 +22,19 @@ def create_user(db: Session, user_create: UserCreate) -> User:
         hashed_password=auth_utils.hash_password(user_create.password),
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
+
+    # The pre-checks above can race: two concurrent signups may both pass them and
+    # reach the INSERT, after which the database's unique constraints reject the
+    # second one with an IntegrityError. Catch it and surface a clean 409 instead
+    # of letting it bubble up as an opaque 500, re-checking to report the field.
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        if db.query(User).filter(User.email == user_create.email).first() is not None:
+            raise auth_exceptions.UserAlreadyExists("email") from None
+        raise auth_exceptions.UserAlreadyExists("username") from None
     return user
 
 
@@ -64,8 +76,13 @@ def update_user(db: Session, user: User, user_update: UserUpdate) -> User:
         user.hashed_password = auth_utils.hash_password(user_update.password)
 
     db.add(user)
-    db.commit()
-    db.refresh(user)
+
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise auth_exceptions.UserAlreadyExists("username") from None
     return user
 
 
