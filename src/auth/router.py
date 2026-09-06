@@ -1,5 +1,6 @@
 # Router with the endpoints
 from fastapi import APIRouter
+from fastapi import Request
 from starlette import status
 
 from src.auth import utils as auth_utils
@@ -14,18 +15,23 @@ from src.auth.service import authenticate_user
 from src.auth.service import create_user
 from src.auth.service import delete_user
 from src.auth.service import update_user
-from src.database import db_dependency
+from src.core.database import db_dependency
+from src.core.rate_limit import LOGIN_RATE_LIMIT
+from src.core.rate_limit import REGISTER_RATE_LIMIT
+from src.core.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserRead)
-def register(db: db_dependency, user_create: UserCreate):
+@limiter.limit(REGISTER_RATE_LIMIT)
+def register(request: Request, db: db_dependency, user_create: UserCreate):
     return create_user(db, user_create)
 
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponse)
-def login(db: db_dependency, login_request: LoginRequest):
+@limiter.limit(LOGIN_RATE_LIMIT)
+def login(request: Request, db: db_dependency, login_request: LoginRequest):
     user = authenticate_user(db, login_request.email, login_request.password)
     access_token = auth_utils.create_access_token(
         subject=user.id,
