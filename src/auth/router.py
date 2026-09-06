@@ -26,12 +26,28 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserRead)
 @limiter.limit(REGISTER_RATE_LIMIT)
 def register(request: Request, db: db_dependency, user_create: UserCreate):
+    """
+    Create a new user account.
+
+    Provide a unique `email` and `username`, plus a `password` of at least 8
+    characters. Returns the created user. Rate-limited.
+
+    Error codes: 409 if the email or username is already taken.
+    """
     return create_user(db, user_create)
 
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponse)
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login(request: Request, db: db_dependency, login_request: LoginRequest):
+    """
+    Sign in and receive a bearer token.
+
+    Pass credentials in the body; returns `access_token` + `token_type`. Use the
+    token as `Authorization: Bearer <access_token>`. Rate-limited.
+
+    Error codes: 401 on invalid credentials.
+    """
     user = authenticate_user(db, login_request.email, login_request.password)
     access_token = auth_utils.create_access_token(
         subject=user.id,
@@ -44,14 +60,22 @@ def login(request: Request, db: db_dependency, login_request: LoginRequest):
 
 @router.get("/me", status_code=status.HTTP_200_OK, response_model=UserRead)
 def get_me(current_user: current_user_dependency):
+    """Return the currently authenticated user (requires `Authorization` header)."""
     return current_user
 
 
 @router.patch("/me", status_code=status.HTTP_200_OK, response_model=UserRead)
 def update_me(db: db_dependency, user_update: UserUpdate, current_user: current_user_dependency):
+    """
+    Update the current user's `username` and/or `password`.
+
+    Only send the fields you want to change. Email cannot be changed here.
+    Returns the updated user.
+    """
     return update_user(db, current_user, user_update)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_me(db: db_dependency, current_user: current_user_dependency):
+    """Delete the currently authenticated user's account. Returns 204 on success."""
     delete_user(db, current_user)
