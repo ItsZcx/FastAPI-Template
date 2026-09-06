@@ -23,21 +23,21 @@
 Pick the path that matches what you are doing:
 
 ### 👀 Just looking around
-* Read the [Developer Manual → Technology Stack](/developer-manual) to understand the tools this template adopts.
-* Skip straight to the [Architecture](/architecture) section to see how the code is organised and why.
+* Read the [Technology Stack](../developer-manual/technology_stack.md) page to understand the tools this template adopts.
+* Skip to the [Project Structure](../architecture/project_structure.md) page to see how the code is organised and why.
 
 ### 🚀 Starting a new project from the template
-* Begin with the [Developer Manual → Quickstart](/developer-manual) to spin up the stack in minutes.
-* Then read [Architecture → Project Structure](/architecture) and [Architecture → Conventions](/architecture) so your new code follows the same rules.
+* Begin with the [Quickstart](../developer-manual/quickstart.md) page to spin up the stack in minutes.
+* Then read [Project Structure](../architecture/project_structure.md) and [Conventions](../architecture/conventions.md) so your new code follows the same rules.
 
 ### 💻 Running it on your own machine
-* The [Developer Manual](/developer-manual) covers local development, configuration (every env variable), and database migrations.
+* Get set up with [Local Development](../developer-manual/local_development.md), configure every env variable in [Configuration](../developer-manual/configuration.md), and apply the schema with [Database & Migrations](../developer-manual/database_migrations.md).
 
 ### 🧪 Working on the code / quality
-* The [Architecture → Testing](/architecture) page explains the test suite and policy.
-* The [Contributing](/contributing) page lays out the conventions and process for proposing changes.
+* The [Testing](../architecture/testing.md) page explains the test suite and policy.
+* The [Contributing](../contributing/contributing.md) page lays out the conventions and process for proposing changes.
 
 ### 🛠️ Helping or contributing back
-* The [Contributing](/contributing) section is the place to start.
+* The [Contributing](../contributing/contributing.md) section is the place to start.
 
-> 💡 **New to the repo?** If you only read one more page, make it [Architecture → Conventions](/architecture/conventions.md) — formatting, imports, and the Pydantic/SQLAlchemy style are all there.
+> 💡 **New to the repo?** If you only read one more page, make it [Conventions](../architecture/conventions.md) — formatting, imports, and the Pydantic/SQLAlchemy style are all there.
