@@ -1,5 +1,5 @@
 # package-specific config/constants
-from src.config import EnvFileLoader
+from src.core.config import EnvFileLoader
 
 
 class PackageSetting(EnvFileLoader):

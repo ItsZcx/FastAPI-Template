@@ -15,5 +15,14 @@ class EnvFileLoader(BaseSettings):
 class SrcSetting(EnvFileLoader):
     DB_URL: str
 
+    # development | production. Controls HSTS and can drive other prod-only behavior.
+    ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "INFO"
+    # console | json. Use "json" for log aggregators (Datadog, Loki, CloudWatch, ...).
+    LOG_FORMAT: str = "console"
+
+    # Comma-separated list of allowed CORS origins (empty = CORS disabled).
+    CORS_ORIGINS: str = ""
+
 
 src_setting = SrcSetting()

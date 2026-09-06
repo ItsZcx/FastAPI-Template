@@ -8,7 +8,7 @@ from fastapi.security import HTTPBearer
 from src.auth import exceptions as auth_exceptions
 from src.auth import service as auth_service
 from src.auth.models import User
-from src.database import db_dependency
+from src.core.database import db_dependency
 
 # auto_error=False so missing/invalid credentials raise our InvalidToken
 # exception and are handled by the global handler in src.main (HTTP 401)

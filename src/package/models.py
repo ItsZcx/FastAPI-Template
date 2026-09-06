@@ -4,7 +4,7 @@ from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
 
-from src.database import Base
+from src.core.database import Base
 
 
 # Database table model
