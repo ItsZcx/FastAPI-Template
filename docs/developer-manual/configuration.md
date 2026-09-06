@@ -7,6 +7,8 @@ All application configuration is loaded from a `.env` file (or real environment 
 
 Both inherit from `EnvFileLoader`, whose only job is to read `.env` and ignore unknown keys (`extra="ignore"`).
 
+> 💡 **Which `.env` is used where?** The project's `.env` drives **host-side** tooling (running the app locally, Alembic, pytest). Inside **Docker**, `compose.yaml` injects the runtime values as environment variables (using the `fastapi-postgres` hostname), so the container does **not** read a baked `.env`.
+
 > 💡 **Why `extra="ignore"`?** It lets every settings class read the *same* `.env` while only picking the fields it declares. Your `.env` can then safely contain variables for the app, Alembic, and tests together.
 
 ## 🌍 Loading priority
@@ -24,7 +26,7 @@ So a real environment variable overrides what is in `.env`. This is exactly how 
 
 | Variable          | Type | Required   | Description                                                                                                   |
 | ----------------- | ---- | ---------- | ------------------------------------------------------------------------------------------------------------- |
-| `DB_URL`          | str  | ✅          | SQLAlchemy connection string for the running API. In Docker use `fastapi-postgres`; on host use `localhost`.  |
+| `DB_URL`          | str  | ✅          | SQLAlchemy connection string for the running API. When the app runs on the **host** use `localhost`; in **Docker** compose injects the `fastapi-postgres` hostname automatically. |
 | `AUTH_SECRET_KEY` | str  | ✅          | Key signing the JWT tokens. **Generate a strong one** (`openssl rand -hex 32`).                               |
 | `ALEMBIC_DB_URL`  | str  | ✅ (manual) | Read directly by `alembic/env.py` (not by the app). Always uses `localhost` because Alembic runs on the host. |
 
@@ -62,9 +64,12 @@ These are currently **constants in code**, not env vars:
 
 ## 📄 Example `.env`
 
+This drives host-side execution (local app, Alembic, pytest). Inside Docker the app
+is configured by `compose.yaml` instead.
+
 ```bash
-# --- Connection ---
-DB_URL=postgresql://postgres:1234@fastapi-postgres:5432/postgres
+# --- Connection (host side; Docker injects its own DB_URL) ---
+DB_URL=postgresql://postgres:1234@localhost:5432/postgres
 ALEMBIC_DB_URL=postgresql://postgres:1234@localhost:5432/postgres
 AUTH_SECRET_KEY=replace-with-openssl-rand-hex-32
 

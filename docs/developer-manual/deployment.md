@@ -20,7 +20,6 @@ FROM python:3.10-alpine3.20
 ENV PYTHONUNBUFFERED=1 UV_NO_CACHE=1
 RUN pip install --no-cache-dir uv==0.12.10
 RUN uv sync --no-dev --frozen   # runtime deps only, from the committed lock
-COPY .env ./
 CMD ["uv", "run", "--frozen", "fastapi", "run", "src/main.py", "--reload", "--port", "8080"]
 ```
 
@@ -28,6 +27,7 @@ Key points:
 
 * Installs **runtime** dependencies only (`--no-dev`) — Ruff, pytest & pre-commit never ship to production.
 * `--frozen` installs exactly from the committed `uv.lock`, so the image is reproducible.
+* **No `.env` is baked into the image.** Configuration is injected at runtime via environment variables (`compose.yaml` does this for local, your platform for prod). Inside a container the database is `fastapi-postgres`, **not** `localhost`.
 * The `--reload` flag in the `CMD` is development-oriented; for production you will typically drop `--reload` (and may add `--workers` behind a load balancer).
 
 > ⚠️ The image prepares port `8080`. Route external traffic there (or remap via Compose as `compose.yaml` does).

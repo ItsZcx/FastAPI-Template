@@ -13,8 +13,6 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync --no-dev --frozen
 
-COPY .env ./
-
 EXPOSE 8080
 
 CMD ["uv", "run", "--frozen", "fastapi", "run", "src/main.py", "--reload", "--port", "8080"]

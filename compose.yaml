@@ -9,6 +9,17 @@ services:
         container_name: fastapi
         ports:
             - 8080:8080
+        environment:
+            # Inside the container the database is reached over the Docker
+            # network by service name, NOT localhost (localhost would be the
+            # container itself and connection is refused). Values are read from
+            # the host .env if set, otherwise sensible dev defaults apply.
+            DB_URL: postgresql://postgres:1234@fastapi-postgres:5432/postgres
+            AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:-dev-secret-change-me}
+            ENVIRONMENT: ${ENVIRONMENT:-development}
+            LOG_LEVEL: ${LOG_LEVEL:-INFO}
+            LOG_FORMAT: ${LOG_FORMAT:-console}
+            CORS_ORIGINS: ${CORS_ORIGINS:-}
         volumes:
             - ./src:/code/src
         networks:
