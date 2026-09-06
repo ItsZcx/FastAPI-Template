@@ -4,17 +4,13 @@ FROM python:3.10-alpine3.20
 ENV PYTHONUNBUFFERED=1 \
     POETRY_VIRTUALENVS_CREATE=false
 
-RUN pip install --no-cache-dir poetry==1.8.3
+RUN pip install --no-cache-dir poetry==2.3.2
 
 WORKDIR /code
 
-COPY pyproject.toml ./
+COPY pyproject.toml poetry.lock ./
 
-RUN if poetry show --without dev > /dev/null 2>&1; then \
-    poetry install --without dev --no-root; \
-    else \
-    poetry install --no-root; \
-    fi && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
 
 COPY .env ./
 
