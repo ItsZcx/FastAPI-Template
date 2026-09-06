@@ -2,18 +2,27 @@
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Path
+from fastapi import Query
 from starlette import status
 
-from src.database import db_dependency
+from src.core.database import db_dependency
 from src.package.models import Todos
+from src.package.schemas import TodoRead
 from src.package.schemas import TodoRequest
+from src.pagination import Page
+from src.pagination import apply_cursor
 
 router = APIRouter(prefix="/todos", tags=["Todos"])
 
 
-@router.get("", status_code=status.HTTP_200_OK)
-def get_items(db: db_dependency):
-    return db.query(Todos).all()
+@router.get("", status_code=status.HTTP_200_OK, response_model=Page[TodoRead])
+def get_items(
+    db: db_dependency,
+    cursor: str | None = Query(default=None),
+    limit: int = Query(default=20, ge=1, le=100),
+):
+    items, next_cursor = apply_cursor(db.query(Todos), Todos.id, cursor, limit)
+    return Page[TodoRead](items=items, next_cursor=next_cursor)
 
 
 @router.get("/{todo_id}", status_code=status.HTTP_200_OK)
