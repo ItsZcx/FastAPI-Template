@@ -40,6 +40,21 @@ def test_register_duplicate_username(client):
     assert response.status_code == status.HTTP_409_CONFLICT
 
 
+def test_email_is_normalized_to_lowercase_on_register(client):
+    # Register with a mixed-case email; it should be stored as lowercase.
+    response = _register(client, email="User.Mixed@Example.COM")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["email"] == "user.mixed@example.com"
+
+    # Login using any casing must resolve to the same (lowercased) account.
+    response = _login(client, email="USER.MIXED@EXAMPLE.COM")
+    assert response.status_code == status.HTTP_200_OK
+
+    # A second registration differing only by case is a conflict, not a new user.
+    duplicate = _register(client, email="user.mixed@example.com", username="othercase")
+    assert duplicate.status_code == status.HTTP_409_CONFLICT
+
+
 def test_login_success_and_me(client):
     _register(client)
 

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +14,7 @@ from src.auth.exceptions import UserAlreadyExists
 from src.auth.exceptions import UserNotFound
 from src.auth.router import router as auth_router
 from src.core.config import src_setting
+from src.core.database import engine
 from src.core.logging import configure_logging
 from src.core.logging import get_logger
 from src.core.middleware import RequestIDMiddleware
@@ -23,7 +26,21 @@ from src.package.router import router as package_router
 
 configure_logging(src_setting.LOG_LEVEL, src_setting.LOG_FORMAT)
 
-app = FastAPI(title="FastAPI-Template")
+logger = get_logger("app")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Run once at startup and shutdown to manage process-level resources."""
+    logger.info("starting up", environment=src_setting.ENVIRONMENT)
+    yield
+    # Release the connection pool cleanly so the process can exit without
+    # "stale thread" warnings or leaked connections after shutdown.
+    logger.info("shutting down; disposing database engine")
+    engine.dispose()
+
+
+app = FastAPI(title="FastAPI-Template", lifespan=lifespan)
 
 # slowapi needs the limiter on app.state to enforce @limiter.limit decorators
 app.state.limiter = limiter
@@ -72,7 +89,7 @@ async def auth_error_handler(request: Request, error: AuthError):
 async def unhandled_error_handler(request: Request, error: Exception):
     # Safety net: log the full traceback but respond with an opaque 500 so no
     # internal detail leaks to the client. Bug reports should reference logs.
-    get_logger("app").exception("unhandled error", url=str(request.url))
+    logger.exception("unhandled error", url=str(request.url))
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 

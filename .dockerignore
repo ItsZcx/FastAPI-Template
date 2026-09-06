@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+
+# Local configuration & secrets (must never be baked into an image)
+.env
+.env.*
+!.env.example
+
+# Dependencies & virtualenvs
+.venv
+venv
+*.egg-info
+
+# Caches & tooling output
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# GitBook documentation is already published; not needed in the image build
+docs/
+
+# Tests & CI helper files are dev-only
+tests/
+.github/

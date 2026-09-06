@@ -18,6 +18,7 @@ fastapi-template
 ├── alembic.ini                   # Alembic entry configuration
 ├── compose.yaml                  # Docker services: fastapi + postgres
 ├── Dockerfile                    # API image (runtime deps only)
+├── .dockerignore                 # files excluded from the Docker build context
 ├── docs/                         # this GitBook documentation site
 ├── src/                          # source of the application
 ├── tests/                        # pytest suite (mirrors src package layout)

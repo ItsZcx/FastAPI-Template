@@ -31,10 +31,10 @@ def get_items(db: db_dependency, ...):
 `alembic/env.py`:
 
 1. Loads `.env` and reads **`ALEMBIC_DB_URL`** directly from the environment (never `.ini`).
-2. Imports the app's `Base` **and every installed model** (even if unused) so autogenerate can see all tables.
+2. **Auto-discovers models**: it scans `src/` and imports every `<package>/models.py`, so every table is registered on `Base` for autogenerate.
 3. Sets `target_metadata = Base.metadata`.
 
-> ⚠️ **Reminder for new models**: whenever you add a model file, import it in `alembic/env.py` too — otherwise Alembic won't discover the new table during autogenerate.
+> ✅ **New models are picked up automatically** — just drop a `models.py` in a package under `src/`; you no longer need to add an explicit import in `alembic/env.py`.
 
 ### Common commands
 
@@ -73,7 +73,7 @@ rm -rf alembic/ alembic.ini
 uv run alembic init alembic
 ```
 
-Then reconfigure `alembic/env.py` to load `ALEMBIC_DB_URL`, import your models, and set `target_metadata`. The rules above still apply.
+Then reconfigure `alembic/env.py` to load `ALEMBIC_DB_URL` and set `target_metadata = Base.metadata`. If you want the same auto-discovery as this template, add the `_discover_and_import_models()` helper from the repo's `alembic/env.py`; otherwise you will need to import each model module yourself.
 
 ## 🧱 Writing a model
 
@@ -99,10 +99,9 @@ Reference implementation milestones:
 
 ## ✅ Recommended workflow
 
-1. Change the model(s) in `src/<package>/models.py`.
-2. Make sure the model is imported by `alembic/env.py`.
-3. `uv run alembic revision --autogenerate -m "what changed"`.
-4. **Review** the generated migration in `alembic/versions/…`.
-5. `uv run alembic upgrade head`.
+1. Change the model(s) in `src/<package>/models.py` (auto-discovered by `alembic/env.py`).
+2. `uv run alembic revision --autogenerate -m "what changed"`.
+3. **Review** the generated migration in `alembic/versions/…`.
+4. `uv run alembic upgrade head`.
 
 > ⚠️ Always start the PostgreSQL container before running any migration command.

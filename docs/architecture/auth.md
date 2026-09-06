@@ -46,6 +46,7 @@ class User(Base):
 ```
 
 * **Login identity is `email`** — it cannot be changed after creation (that is why `UserUpdate` has no email field).
+* **Emails are case-insensitive.** They are normalised to lowercase (trim + lower) at the request boundary, so `User@Example.com` and `user@example.com` are the same account; login works with any casing.
 * Only `hashed_password` is stored — never the plaintext.
 * The database enforces uniqueness on both `email` and `username`.
 

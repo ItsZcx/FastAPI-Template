@@ -4,24 +4,32 @@ from datetime import datetime
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
+from pydantic import field_validator
 
 EMAIL_REGEX = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
+
+def normalize_email(value: str) -> str:
+    """Normalise an email so lookups and uniqueness are case-insensitive."""
+    return value.strip().lower()
 
 
 class UserBase(BaseModel):
     """Shared fields for a user (used to build request and response models)."""
 
     email: str = Field(
-        description="Login identity. Unique per user. Lowercasing is not applied automatically.",
+        description="Login identity. Unique per user. Stored and matched in lowercase.",
         pattern=EMAIL_REGEX,
         examples=["user@example.com"],
     )
     username: str = Field(
-        description="Public display name shown on the account. Unique per user.",
+        description="Public display name shown on the account. Unique per user. Case-sensitive.",
         min_length=1,
         max_length=32,
         examples=["johndoe"],
     )
+
+    _normalize_email = field_validator("email")(normalize_email)
 
 
 class UserCreate(UserBase):
@@ -88,7 +96,7 @@ class LoginRequest(BaseModel):
     """Credentials to sign in (`POST /auth/login`). Returns a bearer token."""
 
     email: str = Field(
-        description="Email of the account to sign in to.",
+        description="Email of the account to sign in to. Case-insensitive.",
         pattern=EMAIL_REGEX,
         examples=["user@example.com"],
     )
@@ -98,6 +106,8 @@ class LoginRequest(BaseModel):
         max_length=128,
         examples=["supersecret123"],
     )
+
+    _normalize_email = field_validator("email")(normalize_email)
 
     model_config = ConfigDict(
         json_schema_extra={"example": {"email": "user@example.com", "password": "supersecret123"}}

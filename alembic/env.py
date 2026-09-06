@@ -1,10 +1,16 @@
 from logging.config import fileConfig
+import importlib.util
 import os
+import pathlib
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+import src
+from src.core.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,16 +23,27 @@ if config.config_file_name is not None:
 
 
 # Set up ALEMBIC_DB_URL from .env file (Not automatic, you need to do this config manually if you want to use .env file and the DB_URL)
-from dotenv import load_dotenv
 load_dotenv()
 ALEMBIC_DB_URL = os.getenv("ALEMBIC_DB_URL")
 config.set_main_option("sqlalchemy.url", ALEMBIC_DB_URL)
 
-# Import the models from the app
-from src.core.database import Base
-from src.auth.models import User
-from src.package.models import Todos
 
+def _discover_and_import_models() -> None:
+    """
+    Import every <package>/models.py under src so Alembic autogenerate sees all
+    tables without you having to add an explicit import for each new model.
+    Each module registers its tables on Base.metadata when it is executed.
+    """
+    src_dir = pathlib.Path(src.__file__).parent
+    for path in sorted(src_dir.rglob("models.py")):
+        module_name = ".".join(path.relative_to(src_dir.parent).with_suffix("").parts)
+        spec = importlib.util.spec_from_file_location(module_name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+
+# Import all application models so autogenerate knows every table.
+_discover_and_import_models()
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel

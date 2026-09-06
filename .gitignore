@@ -1,7 +1,26 @@
-.vscode
+# Environment & secrets (never commit)
 .env
+.env.*
+!.env.example
+
+# Virtualenvs (uv / venv)
 .venv
-__pycache__
-.ruff_cache
-.pytest_cache
-.mypy_cache
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.mypy/
+.coverage
+htmlcov/
+
+# Alembic generated artifacts (your migration files are committed; caches are not)
+alembic/**/__pycache__/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
