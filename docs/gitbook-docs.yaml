@@ -1,10 +1,4 @@
 $schema: https://api.gitbook.com/gitbook-docs.yaml
-
-# GitBook Site Git Sync configuration for the FastAPI Template docs.
-#
-# This file lives in docs/ and is the GitBook project directory. The content
-# directories below resolve relative to this file, so a space pointing at
-# ./developer-manual reads docs/developer-manual in the repository.
 site:
   title: FastAPI Template
   structure:
