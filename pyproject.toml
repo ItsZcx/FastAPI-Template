@@ -18,6 +18,7 @@ sqlalchemy = "^2.0.35"
 alembic = "^1.13.2"
 pydantic-settings = "^2.5.2"
 pydantic = "^2.9.2"
+pyjwt = "^2.13.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"

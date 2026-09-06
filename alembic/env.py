@@ -24,6 +24,7 @@ config.set_main_option("sqlalchemy.url", ALEMBIC_DB_URL)
 
 # Import the models from the app
 from src.database import Base
+from src.auth.models import User
 from src.package.models import Todos
 
 # add your model's MetaData object here
