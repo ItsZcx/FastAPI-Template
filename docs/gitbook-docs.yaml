@@ -9,10 +9,17 @@ site:
   title: FastAPI Template
   structure:
     - type: space
+      key: introduction
+      title: Introduction
+      path: introduction
+      default: true
+      content:
+        directory: ./introduction
+        language: en
+    - type: space
       key: developer-manual
       title: Developer Manual
       path: developer-manual
-      default: true
       content:
         directory: ./developer-manual
         language: en

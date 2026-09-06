@@ -1,89 +1,77 @@
 # GitBook Publishing Guide
 
-These Markdown pages are authored to be published to **[GitBook](https://www.gitbook.com)**. This guide explains the two supported ways to deploy them and the conventions used, so the rendered docs feel consistent.
+These Markdown pages are published to **[GitBook](https://www.gitbook.com)** through GitBook's **Site Git Sync**. This guide explains how the repository maps onto the site, and the conventions to follow so edits stay consistent.
 
-> 🎯 **Outcome**: after following one path below, your docs are live at `https://<you>.gitbook.io/<space>/`, are versioned next to the code, and updates publish automatically.
+> 🎯 **Outcome**: content lives in this repository under `docs/`; a `gitbook-docs.yaml` there describes the site; pushing to `main` republishes it automatically at your GitBook site URL (e.g. `https://zcx.gitbook.io/zcx-docs`).
 
 ## 🧩 How this documentation is organised
 
-Every page is a normal Markdown file inside `docs/`:
+Each **space** is backed by one content directory inside `docs/` (a directory is read as one "book" of pages). An **Introduction** space acts as the landing/hub; the rest map to the guides.
 
 ```
 docs/
-├── SUMMARY.md                      # GitBook table of contents (source of truth for the sidebar)
-├── README.md                       # landing page (Introduction)
-├── developer-manual/               # "Developer Manual" group
+├── gitbook-docs.yaml               # GitBook site config: maps directories onto spaces
+├── introduction/                   # "Introduction" space  (site landing / default)
+│   └── README.md
+├── developer-manual/               # "Developer Manual" space
 │   ├── technology_stack.md
 │   ├── quickstart.md
 │   ├── local_development.md
 │   ├── configuration.md
 │   ├── database_migrations.md
 │   ├── core_crosscutting.md
-│   ├── deployment.md
-│   └── gitbook_publishing.md
-├── architecture/                   # "Architecture" group
-└── contributing/
+│   ├── gitbook_publishing.md       # this page
+│   └── deployment.md
+├── architecture/                   # "Architecture" space
+└── contributing/                   # "Contributing" space
 ```
 
-Notes on conventions used (see also [Conventions](../architecture/conventions.md)):
+The authoritative mapping lives in `gitbook-docs.yaml`. Check it after adding or removing a space:
 
-* **Folders = GitBook groups**; `SUMMARY.md` defines the order and grouping of the sidebar.
-* Emoji 🧰 / 🚀 / ✅ prefix the page headings to reinforce purpose (scannable).
-* Callouts are plain Markdown block quotes — `> 💡 Tip:`, `> ⚠️ Caution:`, `> ✅ Verdict:`.
-* Relative links use GitBook-style paths (e.g. `../architecture/auth.md`).
+```yaml
+site:
+  title: FastAPI Template
+  structure:
+    - { type: space, key: introduction, title: Introduction, path: introduction, default: true,
+        content: { directory: ./introduction } }
+    - { type: space, key: developer-manual, title: Developer Manual, path: developer-manual,
+        content: { directory: ./developer-manual } }
+    - { type: space, key: architecture, title: Architecture, path: architecture,
+        content: { directory: ./architecture } }
+    - { type: space, key: contributing, title: Contributing, path: contributing,
+        content: { directory: ./contributing } }
+```
 
-> 💡 GitBook automatically exposes each page in Markdown (append `.md`), and a machine-readable `llms.txt` index — great for LLM tooling and offline review.
+Notes on conventions:
 
-## ✅ Recommended workflow: Git sync (GitHub-connected space)
+* **One directory = one space.** Add new pages to an existing space's folder, or create a new folder and register it in `gitbook-docs.yaml` as a new space.
+* `content.directory` paths are **relative to the `docs/` project directory** (e.g. `./introduction` reads `docs/introduction` in the repo).
+* Emoji 🧰 / 🚀 / ✅ prefix headings to keep pages scannable; callouts are plain Markdown block quotes (`> 💡 Tip:`, `> ⚠️ Caution:`).
+* Exactly **one space should be `default: true`** — the one opened when the site is visited. Currently the **Introduction** space.
 
-GitBook can **sync a folder of a GitHub repository** and turn it into a published space. It is the most maintainable setup (docs live beside the code, PR-reviewable).
+> 💡 GitBook automatically exposes each page in Markdown and generates a sitemap and an `llms.txt` index.
 
-### Steps
+## ✅ How publishing works (Git sync)
 
-1. **Push this `docs/` folder to your repository.** E.g. `main` branch at `docs/`.
+1. **Structure** — `docs/gitbook-docs.yaml` names the space layout. GitBook reads it as the project directory when configured to root at `docs/`.
+2. **Content** — each space's `content.directory` is read on import.
+3. **Sync** — pushing to the synced branch republishes. With auto-publish on, merges to `main` update the live site automatically.
+4. **Confirm** — after a push, open your site (e.g. `https://zcx.gitbook.io/zcx-docs`) and check the new content appears; if not, trigger a re-sync from GitBook.
 
-2. **Create a GitBook space.**
-   Go to <https://www.gitbook.com> → *New space* → choose the **"Git"** integration.
+> ⚠️ If content does not appear after moving a space's directory, check that the `content.directory` value still exists **relative to the `docs/` folder** and re-run the sync.
 
-3. **Connect the repository.**
-   Select your GitHub repo (authorize GitBook to read it) and set:
-   * Branch: choose the branch you want to publish from (e.g. `main` or a dedicated `docs`).
-   * Path / Root: `docs`
-   * Content format: **Markdown**
+## 🔍 After a change
 
-4. **Let GitBook import.** It will read `docs/SUMMARY.md` as the table of contents.
+* Verify the site layout matches `docs/gitbook-docs.yaml`: **Introduction**, **Developer Manual**, **Architecture**, **Contributing**.
+* Open the **Introduction** page and confirm its navigation links point at the other spaces.
+* If you add cross-space navigation, use the page's deployed URL or relative paths within a space — GitBook renders each space separately.
 
-5. **Publish** your space (Publish → *Publish updates*). GitBook hosts it at a URL like `https://<space>.gitbook.io/docs`.
+## 🏗️ Editing tips
 
-6. **Enable automatic updates** (recommended): turn on *auto-publish on push* so every merge into `main` republishes the docs.
+* **Add a page** — drop a `.md` file into the matching space folder under `docs/`.
+* **Add a whole space** — create `docs/<name>/…` and add a `space` entry to `gitbook-docs.yaml`.
+* **Reorder spaces** — change the order of entries in `docs/gitbook-docs.yaml`.
+* **Rename a space/page** — update its path/title in `gitbook-docs.yaml` and fix incoming links.
+* **Keep it evergreen** — update the matching page in the same PR as the code/env/migration change.
 
-> ✅ **Why this is preferred**: single source of truth, no manual content uploads, and Markdown-only (no lock-in to GitBook-specific editing tricks).
-
-## 🧰 Alternative: create from folder (GitBook editor)
-
-If you don't want Git sync, GitBook can generate a space from these files via its API/import tools:
-
-1. At *Create space*, choose **"Import"** (or the GitBook CLI/`API Import`).
-2. Provide the structured Markdown. GitBook reads `README.md` as the landing page and `SUMMARY.md` for the sidebar.
-3. Because the docs use only portable Markdown, the rendering is faithful.
-
-> When importing by hand, prefer `SUMMARY.md` over raw *drag-and-drop* so the sidebar ordering is preserved exactly.
-
-## 🔍 After it is live
-
-* Verify the four groups render: **Developer Manual**, **Architecture**, **Contributing**.
-* Check every **relative link** resolves (lint with a Markdown link checker in CI if you like).
-* For SEO/AI discovery, GitBook generates a sitemap and an `llms.txt` automatically.
-
-## 🏗️ Editing tips for the future
-
-* **Add a page**: create a new `.md` under a group folder, then add a `* [Title](relative/path.md)` line in `SUMMARY.md`.
-* **Rename a page**: update the file and fix its `SUMMARY.md` entry + incoming links (GitBook does not auto-redirect).
-* **Reorder**: change the order of lines in `SUMMARY.md`.
-* **Keep it evergreen**: if an env var, migration, or endpoint changes, update the matching page in the same PR as the code.
-
-> ⚠️ Do **not** edit live content in the GitBook editor if you use Git sync — your local commit will overwrite it. Always edit in the repo and let the sync push it.
-
-## 🤖 Deploying for a team / CI
-
-If you already use GitHub Actions (see [Deployment](https://github.com/ItsZcx/FastAPI-Template/blob/main/.github/workflows/ci.yml)), you can optionally enforce documentation hygiene in the same pipeline — e.g. link checks on `docs/`. Installing GitBook's `gitbook` CLI is not required for the hosted Git-sync flow described above.
+> ⚠️ Do **not** hand-edit published content in the GitBook editor if you use Git sync — your next local commit will overwrite it. Edit in the repo and let the sync push it.
