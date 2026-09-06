@@ -19,9 +19,13 @@ alembic = "^1.13.2"
 pydantic-settings = "^2.5.2"
 pydantic = "^2.9.2"
 pyjwt = "^2.13.0"
+slowapi = "^0.1.10"
+structlog = "^26.1.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"
+pytest = "^9.1.1"
+pre-commit = "^4.6.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -63,3 +67,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.isort]
 force-single-line = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
