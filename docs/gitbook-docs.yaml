@@ -3,31 +3,10 @@ site:
   title: FastAPI Template
   structure:
     - type: space
-      key: introduction
-      title: Introduction
-      path: introduction
+      key: docs
+      title: FastAPI Template
+      path: docs
       default: true
       content:
-        directory: ./introduction
-        language: en
-    - type: space
-      key: developer-manual
-      title: Developer Manual
-      path: developer-manual
-      content:
-        directory: ./developer-manual
-        language: en
-    - type: space
-      key: architecture
-      title: Architecture
-      path: architecture
-      content:
-        directory: ./architecture
-        language: en
-    - type: space
-      key: contributing
-      title: Contributing
-      path: contributing
-      content:
-        directory: ./contributing
+        directory: .
         language: en
