@@ -1,43 +1,48 @@
-# Welcome to FastAPI Template 👋
+# Welcome to FastAPI Template
 
-> 🎯 This **Introduction** is the starting point. Use it to figure out **where** to go next — pick the section that matches what you are trying to do.
+This **Introduction** is the starting point. Use it to figure out **where** to go next.
 
-**FastAPI Template** is a **production-oriented FastAPI boilerplate**. It ships with the cross-cutting concerns most backends need — authentication, logging, rate limiting, health checks, pagination, testing, and CI — so you can start writing domain logic immediately instead of re-soldering infrastructure.
+**FastAPI Template** is a **production-oriented FastAPI boilerplate**. It ships the cross-cutting concerns most backends need: authentication, logging, rate limiting, health checks, pagination, testing, and CI. You start on domain logic, not infrastructure.
 
-## 🚀 What you get
+## What you get
 
-| Area | What ships out of the box |
-| --- | --- |
-| 💻 Structure | a consistent, domain-first layout with `src/core/` for shared infrastructure |
-| 🔐 Auth | JWT authentication + basic user management (`register` / `login` / `/me`) |
-| 🚦 Rate limiting | slowapi on sensitive endpoints |
-| 🌐 CORS & headers | environment-driven CORS and security headers |
-| 🪵 Logging | structlog — console in dev, JSON in prod, with per-request `X-Request-ID` |
-| 🩺 Health | `/healthz` (liveness) and `/readyz` (real DB probe) |
-| 📄 Pagination | reusable cursor-pagination `Page[T]` envelope |
-| 🗄️ Data | PostgreSQL + Alembic migrations, uv and Docker |
-| ✅ Quality | pytest suite, Ruff, pre-commit, GitHub Actions CI |
+| Area             | What ships out of the box                                                     |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Structure        | A consistent, domain-first layout with `src/core/` for shared infrastructure. |
+| Auth             | JWT authentication and basic user management (`register`, `login`, `/me`).    |
+| Rate limiting    | slowapi on the sensitive endpoints.                                           |
+| CORS and headers | Environment-driven CORS and security headers.                                 |
+| Logging          | structlog: console in dev, JSON in prod, with a per-request `X-Request-ID`.   |
+| Health           | `/healthz` (liveness) and `/readyz` (real DB probe).                          |
+| Pagination       | A reusable cursor-pagination `Page[T]` envelope.                              |
+| Data             | PostgreSQL and Alembic migrations, uv, and Docker.                            |
+| Quality          | pytest, Ruff, pre-commit, and a GitHub Actions CI pipeline.                   |
 
-## 🧭 Where to go next
+## Where to go next
 
-Pick the path that matches what you are doing:
+Pick the path that matches what you are doing.
 
-### 👀 Just looking around
-* Read the [Technology Stack](developer-manual/technology_stack.md) page to understand the tools this template adopts.
-* Skip to the [Project Structure](architecture/project_structure.md) page to see how the code is organised and why.
+### Just looking around
 
-### 🚀 Starting a new project from the template
-* Begin with the [Quickstart](developer-manual/quickstart.md) page to spin up the stack in minutes.
+* Read [Technology Stack](developer-manual/technology_stack.md) to understand which tools the template adopts.
+* Read [Project Structure](architecture/project_structure.md) to see how the code is organised.
+
+### Starting a new project from the template
+
+* Start with [Quickstart](developer-manual/quickstart.md) to spin up the stack.
 * Then read [Project Structure](architecture/project_structure.md) and [Conventions](architecture/conventions.md) so your new code follows the same rules.
 
-### 💻 Running it on your own machine
-* Get set up with [Local Development](developer-manual/local_development.md), configure every env variable in [Configuration](developer-manual/configuration.md), and apply the schema with [Database & Migrations](developer-manual/database_migrations.md).
+### Running it on your own machine
 
-### 🧪 Working on the code / quality
-* The [Testing](architecture/testing.md) page explains the test suite and policy.
-* The [Contributing](contributing/contributing.md) page lays out the conventions and process for proposing changes.
+* Read [Local Development](developer-manual/local_development.md), [Configuration](developer-manual/configuration.md), and [Database & Migrations](developer-manual/database_migrations.md).
 
-### 🛠️ Helping or contributing back
-* The [Contributing](contributing/contributing.md) section is the place to start.
+### Working on the code and quality
 
-> 💡 **New to the repo?** If you only read one more page, make it [Conventions](architecture/conventions.md) — formatting, imports, and the Pydantic/SQLAlchemy style are all there.
+* [Testing](architecture/testing.md) explains the test suite and policy.
+* [Contributing](contributing/contributing.md) explains the conventions for proposing changes.
+
+### Helping or contributing back
+
+* Start at [Contributing](contributing/contributing.md).
+
+> New here? Read [Conventions](architecture/conventions.md) next. It covers formatting, imports, and the Pydantic and SQLAlchemy style.

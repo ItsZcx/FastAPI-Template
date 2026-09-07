@@ -1,41 +1,39 @@
 # Project Structure
 
-> 🎯 **Goal**: understand exactly where code lives, why the folders exist, and the "package" rules that keep a FastAPI app consistent as it grows.
+Understand where code lives, why the folders exist, and the package rules that keep a FastAPI app consistent as it grows.
 
-## 🌳 The big idea
+## The big idea
 
-The layout is based on [zhanymkanov/fastapi-best-practices → consistent & predictable structure](https://github.com/zhanymkanov/fastapi-best-practices#1-project-structure-consistent--predictable), adapted to uv + Docker. The motto:
+The layout follows [zhanymkanov's consistent and predictable structure](https://github.com/zhanymkanov/fastapi-best-practices#1-project-structure-consistent--predictable), adapted to uv and Docker. The rule is: each domain gets its own folder, shared code lives in `core`, and the module that does a thing also owns its models, schemas, and endpoints.
 
-> **Every domain gets its own folder; everything reusable lives in `core`; the module that "does a thing" also owns its models, schemas and endpoints.**
-
-## 🗂️ Repository layout
+## Repository layout
 
 ```
 fastapi-template
-├── .github/workflows/ci.yml      # CI: ruff + pytest against PostgreSQL
-├── .pre-commit-config.yaml       # pre-commit: ruff lint + format
-├── alembic/                      # migration scripts + env.py + versions/
-├── alembic.ini                   # Alembic entry configuration
-├── compose.yaml                  # Docker services: fastapi + postgres
-├── Dockerfile                    # API image (runtime deps only)
+├── .github/workflows/ci.yml      # CI: ruff and pytest against PostgreSQL
+├── .pre-commit-config.yaml       # pre-commit: ruff lint and format
+├── alembic/                      # migration scripts, env.py, versions/
+├── alembic.ini                   # Alembic configuration
+├── compose.yaml                  # Docker services: fastapi and postgres
+├── Dockerfile                    # API image, runtime deps only
 ├── .dockerignore                 # files excluded from the Docker build context
 ├── docs/                         # this GitBook documentation site
-├── src/                          # source of the application
-├── tests/                        # pytest suite (mirrors src package layout)
+├── src/                          # application source
+├── tests/                        # pytest suite, mirrors src layout
 ├── .env.example                  # documented env variables
-├── pyproject.toml                # uv manifest + Ruff + pytest config
+├── pyproject.toml                # uv manifest plus Ruff and pytest config
 ├── uv.lock
 └── README.md
 ```
 
-## 📂 Inside `src/`
+## Inside `src/`
 
 ```
 src/
 ├── main.py            # builds the FastAPI app: middleware, routers, error handlers
-├── pagination.py      # reusable cursor pagination + Page[T]
+├── pagination.py      # reusable cursor pagination and Page[T]
 ├── __init__.py
-├── core/              # cross-cutting concerns (see Core Cross-cutting guide)
+├── core/              # cross-cutting concerns, see the Core cross-cutting guide
 │   ├── config.py
 │   ├── database.py
 │   ├── logging.py
@@ -43,57 +41,56 @@ src/
 │   ├── rate_limit.py
 │   ├── exceptions.py
 │   └── schema.py
-├── health/            # /healthz & /readyz probes
-├── auth/              # domain package — user management + JWT auth
-├── package/           # example (copy-paste) package — a CRUD "todos" API
-└── aws/               # (scaffold) blank package for an external-service client
+├── health/            # /healthz and /readyz probes
+├── auth/              # domain package: user management and JWT auth
+├── package/           # copy-paste example: a CRUD todos API
+└── aws/               # scaffold for an external-service client
 ```
 
-## 🧩 The package convention
+## The package convention
 
-Each **domain** folder consistently declares up to eight responsibilities:
+Each domain folder declares up to eight responsibilities.
 
-| File              | What it holds                                            |
-| ----------------- | -------------------------------------------------------- |
-| `config.py`       | package-local environment configuration (extends `core`) |
-| `dependencies.py` | FastAPI dependencies / guards for this router            |
-| `exceptions.py`   | package-specific exceptions                              |
-| `models.py`       | SQLAlchemy database models                               |
-| `router.py`       | the FastAPI `APIRouter` with all endpoints               |
-| `schemas.py`      | Pydantic request/response models                         |
-| `service.py`      | business logic (what the endpoints orchestrate)          |
-| `utils.py`        | non-business helper functions (pure functions)           |
+| File              | What it holds                                           |
+| ----------------- | ------------------------------------------------------- |
+| `config.py`       | package-local environment configuration, extends `core` |
+| `dependencies.py` | FastAPI dependencies and guards for this router         |
+| `exceptions.py`   | package-specific exceptions                             |
+| `models.py`       | SQLAlchemy database models                              |
+| `router.py`       | the FastAPI `APIRouter` with all endpoints              |
+| `schemas.py`      | Pydantic request and response models                    |
+| `service.py`      | business logic the endpoints orchestrate                |
+| `utils.py`        | non-business helper functions                           |
 
-> 🔍 The reference implementation lives in the **`auth`** package; **`package`** is a minimal CRUD example (`todos`) that is the easiest to copy when adding a new domain.
+The `auth` package is the reference implementation. `package` is a minimal CRUD example for `todos`, easiest to copy when you add a new domain.
 
 ### Rules that keep it predictable
 
-1. Keep **global/common** modules at `src/` top level:
-   `src/pagination.py`, glue in `src/main.py`, and cross-cutting shared code under `src/core/`.
-2. When crossing package boundaries, import with an **explicit module name**:
+1. Keep global and common modules at the `src/` top level. `pagination.py`, the glue in `main.py`, and shared code under `src/core/`.
+2. When crossing package boundaries, import with an explicit module name:
    ```python
    from src.auth import config as auth_config
    from src.core.database import db_dependency
    from src.pagination import Page
    ```
-   (same-package siblings can import normally.)
-3. `router.py` stays thin: it reads requests, calls `service.py`, and returns schemas.
-4. `models.py`/`schemas.py` are **separate** — never confuse the DB row with the wire shape.
+   Siblings in the same package import normally.
+3. `router.py` stays thin. It reads requests, calls `service.py`, and returns schemas.
+4. Keep `models.py` and `schemas.py` separate. The database row is not the wire shape.
 
-## 🔄 Scope rules (trade-offs)
+## Scope rules
 
-The `aws/` package is empty on purpose. Its comments show the intended shape for **external-service communication** (`client.py` for the remote client, `constants.py`, `schemas.py`, `config.py`, `utils.py`, `exceptions.py`).
+The `aws/` package is empty on purpose. Its comments show the intended shape for external-service communication: `client.py` for the remote client, plus `constants.py`, `schemas.py`, `config.py`, `utils.py`, and `exceptions.py`.
 
-> Clear separation of `core/` (shared) vs a domain package (e.g. `auth/`) prevents "kitchen-sink" imports between unrelated endpoints. Copy `package/`, rename it, and you get a working skeleton in minutes.
+Separating `core/` from a domain package prevents imports between unrelated endpoints. Copy `package/`, rename it, and you have a working skeleton.
 
-## 🧠 Where each concern the docs describe lives
+## Where a concern lives
 
-| "How do I..."                     | Look here                                           |
-| --------------------------------- | --------------------------------------------------- |
-| Add a new route protected by auth | `src/<package>/router.py` + `dependencies.py`       |
-| Model a new table                 | `src/<package>/models.py` then a migration          |
-| Tune logging / rate limits / CORS | `src/core/*`                                        |
-| Understand how the app starts     | read `src/main.py` and the docs you are reading now |
-| Write a JSON API envelope         | `src/pagination.py` and `schemas.py`                |
+| To do this                         | Look here                                       |
+| ---------------------------------- | ----------------------------------------------- |
+| Add a route protected by auth      | `src/<package>/router.py` and `dependencies.py` |
+| Model a new table                  | `src/<package>/models.py`, then a migration     |
+| Tune logging, rate limits, or CORS | `src/core/`                                     |
+| Understand how the app starts      | `src/main.py`                                   |
+| Write a JSON API envelope          | `src/pagination.py` and `schemas.py`            |
 
-> 📁 Not listed here but referenced all over: `alembic/` and `docs/` (this site), `tests/` and `pyproject.toml` (covered in [Conventions](conventions.md) and [Testing](testing.md)).
+The rest of the structure is documented where it is used: `alembic/` and `docs/` here, `tests/` in [Testing](testing.md), and `pyproject.toml` in [Conventions](conventions.md).

@@ -1,23 +1,23 @@
 # Pagination
 
-List endpoints in this template use **cursor (keyset) pagination** so responses stay fast and bounded even as tables grow. The reusable pieces live in `src/pagination.py`.
+List endpoints use cursor pagination, also called keyset pagination, so responses stay fast and bounded as tables grow. The reusable pieces live in `src/pagination.py`.
 
-> 💡 *Cursor* (opaque "page token") pagination is preferable to plain `?page=` for large/changing datasets because the window is keyed off the last seen item rather than an offset that can drift or double-skip.
+A cursor is preferable to `?page=` for large or changing datasets. The window keys off the last seen item, not an offset that can drift or double-skip.
 
-## 📦 What `src/pagination.py` exports
+## What `src/pagination.py` exports
 
-| Name                                           | Kind                   | Purpose                                                                       |
-| ---------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------- |
-| `Page[T]`                                      | generic pydantic model | JSON envelope: `{ items: T[], next_cursor }`                                  |
-| `encode_cursor(value)`                         | function               | turn a value (e.g. last id) into an opaque token                              |
-| `decode_cursor(token)`                         | function               | revert a token; `None` in ⇒ `None` out (or start from beginning if malformed) |
-| `apply_cursor(query, order_by, cursor, limit)` | function               | keyset query + returns `(items, next_cursor)`                                 |
+| Name                                           | Kind                   | Purpose                                                                                     |
+| ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------- |
+| `Page[T]`                                      | generic pydantic model | the JSON envelope `{ items: T[], next_cursor }`                                             |
+| `encode_cursor(value)`                         | function               | turns a value, such as the last id, into an opaque token                                    |
+| `decode_cursor(token)`                         | function               | turns the token back. `None` in gives `None` out, or start from the beginning if malformed. |
+| `apply_cursor(query, order_by, cursor, limit)` | function               | runs the keyset query and returns `(items, next_cursor)`                                    |
 
-Cursors are URL-safe base64 of a small JSON payload — they are **opaque** to clients, which only echo them back.
+Cursors are URL-safe base64 of a small JSON payload. Clients treat them as opaque and only echo them back.
 
-## 🧮 The cursor shape
+## The cursor shape
 
-The `Page[T]` model is the wire contract for every paginated list.
+`Page[T]` is the wire contract for every paginated list.
 
 ```json
 {
@@ -26,12 +26,12 @@ The `Page[T]` model is the wire contract for every paginated list.
 }
 ```
 
-* When `next_cursor` is `null`, you reached the last page.
-* `items` is always the requested page (never a slice leak of the fetched lookahead).
+* A `null` `next_cursor` means you reached the last page.
+* `items` holds exactly the requested page.
 
-## 🔭 How a list endpoint uses it
+## How a list endpoint uses it
 
-The `todos` list endpoint is the runnable reference (`src/package/router.py`):
+The `todos` list endpoint in `src/package/router.py` is the runnable reference:
 
 ```python
 from fastapi import Query
@@ -47,16 +47,15 @@ def get_items(
     return Page[TodoRead](items=items, next_cursor=next_cursor)
 ```
 
-Rules this endpoint encodes:
+`limit` uses `ge=1, le=100`, so a client cannot request unbounded pages.
 
-* `limit` has `ge=1, le=100` so a client can't request unbounded pages.
-* The query is ordered by the cursor field (`Todos.id`); `apply_cursor`:
-  1. orders by that field
-  2. filters `field > decoded_cursor` when a cursor is supplied
-  3. fetches `limit + 1` rows to detect whether a further page exists
-  4. returns exactly `limit` items + the next cursor (or `None` if there is no more)
+`apply_cursor` orders the query by the cursor field, here `Todos.id`, then:
 
-## 👣 Calling it
+1. Filters `field > decoded_cursor` when a cursor is supplied.
+2. Fetches `limit + 1` rows to detect whether a further page exists.
+3. Returns exactly `limit` items and the next cursor, or `None` when there is no more.
+
+## Call it
 
 ```bash
 # page 1
@@ -68,13 +67,13 @@ curl 'http://localhost:8080/todos?limit=2&cursor=Mg=='
 # => { "items": [ ...1 row... ], "next_cursor": null }
 ```
 
-## ⚠️ Design notes & extensions
+## Design notes and extensions
 
-* **Single-field cursor**: `apply_cursor` is implemented for one ordered field (commonly the primary key `id`). This is usually enough — records rarely need a true multi-column sort key.
-* **Ascending order**: implemented for monotonically increasing keys. To reverse order, negate the comparison (`field < last`) or extend `apply_cursor` to take a direction.
-* **Envelope reuse**: because `Page` is generic you can produce `Page[TodoRead]`, `Page[UserRead]`, etc. FastAPI resolves the parametrized generic into clean OpenAPI schemas automatically.
-* **Total count**: not included on purpose (counting defeats keyset's purpose on huge tables). If a client needs totals, add an explicit `/count` endpoint instead.
+* **Single-field cursor.** `apply_cursor` keys off one ordered field, usually the primary key `id`. Records rarely need a multi-column sort key.
+* **Ascending order.** It works for keys that increase. To reverse, compare `field < last`, or extend `apply_cursor` to take a direction.
+* **Envelope reuse.** `Page` is generic, so you can return `Page[TodoRead]`, `Page[UserRead]`, and so on. FastAPI resolves the parametrized generic into OpenAPI schemas.
+* **No total count.** Counting defeats keyset's purpose on large tables. If a client needs totals, add a `/count` endpoint.
 
-## 🧪 Testing pagination
+## Test pagination
 
-Two tests in `tests/package/test_todos.py` create 3 rows then assert page 1 returns 2 items + a cursor and page 2 returns 1 item + `null` cursor — run them with the rest of the suite (see [Testing](testing.md)).
+Two tests in `tests/package/test_todos.py` create three rows, then assert page 1 returns two items and a cursor, and page 2 returns one item and a `null` cursor. See [Testing](testing.md).

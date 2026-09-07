@@ -1,8 +1,8 @@
 # Authentication
 
-The `src/auth/` package provides a **complete, minimal user-management system** over **JWT bearer tokens**. It is the reference implementation for the package pattern described in [Project Structure](project_structure.md).
+The `src/auth/` package provides a minimal user-management system over JWT bearer tokens. It is the reference implementation for the package pattern in [Project Structure](project_structure.md).
 
-## 📦 Package layout
+## Package layout
 
 ```
 src/auth/
@@ -10,27 +10,27 @@ src/auth/
 ├── models.py        # User table
 ├── schemas.py       # UserCreate, UserRead, UserUpdate, LoginRequest, TokenResponse
 ├── exceptions.py    # AuthError hierarchy
-├── utils.py         # password hashing + JWT encode/decode (pure functions)
+├── utils.py         # password hashing and JWT encode/decode, pure functions
 ├── service.py       # business logic over the User model
-├── dependencies.py  # get_current_user + bearer scheme
-└── router.py        # /auth/* endpoints, rate-limited
+├── dependencies.py  # get_current_user and the bearer scheme
+└── router.py        # /auth endpoints, rate-limited
 ```
 
-> 💡 The stateful part (models, service) and the stateless helpers (JWT, hashing) are separated exactly as the package convention prescribes: **business logic in `service.py`, pure helpers in `utils.py`**.
+The stateful part, models and service, is separated from the stateless helpers, JWT and hashing. This matches the package convention: business logic in `service.py`, pure helpers in `utils.py`.
 
-## 🎫 API surface
+## API surface
 
-All routes are under the prefix `/auth` (tag `Auth`) and except `/register` + `/login`, all require the `Authorization: Bearer <token>` header.
+All routes live under the prefix `/auth` with the tag `Auth`. Everything except `/register` and `/login` requires the `Authorization: Bearer <token>` header.
 
-| Method | Path             | Auth | Description                                            |
-| ------ | ---------------- | ---- | ------------------------------------------------------ |
-| POST   | `/auth/register` | no   | create user (email, username, password) — rate-limited |
-| POST   | `/auth/login`    | no   | exchange credentials for a JWT — rate-limited          |
-| GET    | `/auth/me`       | yes  | return the authenticated user                          |
-| PATCH  | `/auth/me`       | yes  | update username / password                             |
-| DELETE | `/auth/me`       | yes  | delete the account                                     |
+| Method | Path             | Auth | Description                                  |
+| ------ | ---------------- | ---- | -------------------------------------------- |
+| POST   | `/auth/register` | no   | create a user, rate-limited                  |
+| POST   | `/auth/login`    | no   | exchange credentials for a JWT, rate-limited |
+| GET    | `/auth/me`       | yes  | return the authenticated user                |
+| PATCH  | `/auth/me`       | yes  | update username or password                  |
+| DELETE | `/auth/me`       | yes  | delete the account                           |
 
-## 🧑💻 The `User` model
+## The `User` model
 
 ```python
 class User(Base):
@@ -45,33 +45,33 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 ```
 
-* **Login identity is `email`** — it cannot be changed after creation (that is why `UserUpdate` has no email field).
-* **Emails are case-insensitive.** They are normalised to lowercase (trim + lower) at the request boundary, so `User@Example.com` and `user@example.com` are the same account; login works with any casing.
-* Only `hashed_password` is stored — never the plaintext.
+* The login identity is `email`. It cannot change after creation, which is why `UserUpdate` has no email field.
+* Emails are case-insensitive. They are trimmed and lowercased at the request boundary, so `User@Example.com` and `user@example.com` are the same account. Login works with any casing.
+* Only `hashed_password` is stored, never the plaintext.
 * The database enforces uniqueness on both `email` and `username`.
 
-## 🔒 Passwords — PBKDF2 (stdlib, no extra dependency)
+## Passwords
 
-`src/auth/utils.py` hashes with **PBKDF2-HMAC-SHA256**, the OWASP-recommended iteration count **600,000**, and a per-user random salt.
+`src/auth/utils.py` hashes with PBKDF2-HMAC-SHA256, the OWASP-recommended 600,000 iterations, and a per-user random salt.
 
-* **`hash_password(password)`** → stores `"<salt>$<hex digest>"`.
-* **`verify_password(password, stored)`** → recomputes and compares with a **constant-time** comparison (`hmac.compare_digest`).
+* `hash_password(password)` stores `"<salt>$<hex digest>"`.
+* `verify_password(password, stored)` recomputes and compares with `hmac.compare_digest`, a constant-time comparison.
 
-> ✅ No `bcrypt`/`passlib` dependency is needed. If you later prefer argon2 or bcrypt, only `utils.hash_password` / `verify_password` change — callers and storage stay the same (they see only the `"salt$digest"` string).
+No `bcrypt` or `passlib` dependency is needed. To switch to argon2 or bcrypt later, change only `hash_password` and `verify_password`. Callers and storage stay the same: they see only the `"salt$digest"` string.
 
-## 🪙 JWT tokens
+## JWT tokens
 
 `utils.create_access_token(...)` builds an HS256-signed JWT:
 
-* `sub` = the user id (as a string, per the JWT spec)
-* `iat` / `exp` set from `AUTH_TOKEN_EXPIRE_MINUTES` (default **60** minutes)
-* signed with `AUTH_SECRET_KEY` + `AUTH_ALGORITHM` (default `HS256`)
+* `sub` is the user id as a string, per the JWT spec.
+* `iat` and `exp` come from `AUTH_TOKEN_EXPIRE_MINUTES`, which defaults to 60 minutes.
+* It signs with `AUTH_SECRET_KEY` and `AUTH_ALGORITHM`, which defaults to `HS256`.
 
-`utils.decode_access_token(...)` verifies signature, `exp`, and returns the payload — raising `InvalidToken` on any failure (expired, wrong key, malformed, etc.).
+`utils.decode_access_token(...)` verifies the signature and `exp` and returns the payload. On any failure, expired, wrong key, or malformed, it raises `InvalidToken`.
 
 `TokenResponse` is `{ "access_token": "...", "token_type": "bearer" }`.
 
-## 🧠 Login → use the token (flow)
+## Login and use the token
 
 ```mermaid
 sequenceDiagram
@@ -84,17 +84,17 @@ sequenceDiagram
     R->>R: verify_password(pw, stored_hash)
     alt correct
         R-->>C: 200 {access_token, token_type:"bearer"}
-        Note over C: Client stores token (e.g. memory / localStorage)
+        Note over C: Client stores token in memory or localStorage
         C->>R: GET /auth/me  "Authorization: Bearer <token>"
-        R->>R: decode JWT → user id claim
-        R->>DB: load user; check is_active
+        R->>R: decode JWT, read the user id claim
+        R->>DB: load user, check is_active
         R-->>C: 200 user JSON
     else wrong credentials
         R-->>C: 401
     end
 ```
 
-## 🛂 Protecting an endpoint
+## Protect an endpoint
 
 `src/auth/dependencies.py` exposes the reusable guard:
 
@@ -113,18 +113,19 @@ def get_me(current_user: current_user_dependency):
         # ^ the resolved User is injected
 ```
 
-Internals of `get_current_user`:
+`get_current_user` does three things:
 
-1. Reads the `Bearer` token with `HTTPBearer(auto_error=False)` (so a *missing* header is handled by us, not Starlette's default 403).
-2. Calls `service.get_user_by_token(...)`, which decodes the JWT and loads the user.
-3. Rejects inactive users via `is_active`.
+1. Reads the `Bearer` token with `HTTPBearer(auto_error=False)`, so a missing header raises our `InvalidToken`, not Starlette's default 403.
+2. Calls `service.get_user_by_token()`, which decodes the JWT and loads the user.
+3. Rejects inactive users through `is_active`.
 
-> 🔀 This is the same dependency you import into **your** routers; the `todo` example only demonstrates unauthenticated CRUD, so copy the auth route pattern into the package you extend.
+This is the same dependency you import into your routers. The `todos` example only shows unauthenticated CRUD, so copy the auth route pattern into the package you extend.
 
-## 🌐 From other code / swagger
+## From other code and Swagger
 
-* Swagger UI (<http://localhost:8080/docs>) shows an **Authorize** button for the bearer scheme — paste the token there to fire authenticated requests from the UI.
-* The `login` endpoint takes a **JSON body** (`{email, password}`), not an OAuth2 form. This keeps the client simple; see [Conventions](../architecture/conventions.md).
+Swagger UI at <http://localhost:8080/docs> shows an Authorize button for the bearer scheme. Paste the token there to fire authenticated requests from the UI.
+
+The `login` endpoint takes a JSON body with `{email, password}`, not an OAuth2 form. See [Conventions](conventions.md).
 
 ### Example round-trip
 
@@ -136,24 +137,24 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
 curl http://localhost:8080/auth/me -H "Authorization: Bearer $TOKEN"
 ```
 
-## ✅ Validation & business rules
+## Validation and business rules
 
 * `email` matches an email regex on both `register` and `login`.
-* `username`: 1–32 characters.
-* `password`: 8–128 characters (register/update).
-* Duplicate `email` / `username` → **409 Conflict** with a helpful detail.
-* Unknown user, wrong password → **401**.
-* Deactivated-or-now-deleted user id from a still-valid token → **404/403** depending (mapped in the error-table below).
+* `username` is 1 to 32 characters.
+* `password` is 8 to 128 characters on register and update.
+* A duplicate `email` or `username` returns 409 Conflict.
+* An unknown user or wrong password returns 401.
+* A now-deleted or inactive user id in a still-valid token returns 403 or 404. The central mapping decides.
 
-## 🚦 Rate limiting
+## Rate limiting
 
-Both public endpoints are protected by slowapi so `register` and `login` can't be hammered (see [Core Cross-cutting](../developer-manual/core_crosscutting.md)):
+slowapi protects both public endpoints so `register` and `login` cannot be hammered. See [Core Cross-cutting Features](../developer-manual/core_crosscutting.md).
 
-* `/auth/login` → `5/minute`
-* `/auth/register` → `3/minute`
+* `/auth/login` allows `5/minute`.
+* `/auth/register` allows `3/minute`.
 
-## 🄱 Error mapping (auth exceptions → HTTP)
+## Error mapping
 
-Auth raises domain exceptions (e.g. `InvalidCredentials`, `InvalidToken`, `UserAlreadyExists`, `InactiveUser`, `UserNotFound`). `src/main.py` maps them centrally in one table (details in [Health & Errors](health_and_errors.md)).
+Auth raises domain exceptions such as `InvalidCredentials`, `InvalidToken`, `UserAlreadyExists`, `InactiveUser`, and `UserNotFound`. `src/main.py` maps them centrally in one table. See [Health Checks & Error Handling](health_and_errors.md).
 
-> 🔐 **Key security notes for adopters**: rotate `AUTH_SECRET_KEY` in production; keep tokens short-lived; add refresh tokens only if your UI needs long-lived sessions. Password never leaves your DB except via the `/me` endpoints which hide `hashed_password` through `response_model=UserRead`.
+For adopters: rotate `AUTH_SECRET_KEY` in production, keep tokens short-lived, and add refresh tokens only if your UI needs long-lived sessions. The password hash never leaves the database. The `/me` endpoints hide `hashed_password` through `response_model=UserRead`.

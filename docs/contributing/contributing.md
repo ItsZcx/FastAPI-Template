@@ -1,40 +1,40 @@
 # Contributing
 
-Thanks for wanting to help improve **FastAPI-Template**! This guide mirrors the FAS contributor workflow you may have seen elsewhere, adapted for this single-repo Python template. PRs that respect these conventions merge cleanly into CI.
+Thanks for helping improve FastAPI-Template. Pull requests that follow these conventions merge cleanly into CI.
 
-## 📂 Branch strategy
+## Branch strategy
 
-This template keeps it simple: you develop on feature branches off `main` and open a pull request.
+Develop on a feature branch off `main`, then open a pull request.
 
 ```text
 main ─────────────────────────►
-      \ feat/12-add-xyz         \  PR → merge back to main
+      \ feat/12-add-xyz         \  PR merges back to main
 ```
 
-* `main` — the only long-lived branch; always passes CI.
-* Work branches — `type/issue-short-description` (see naming below).
-* A `dev`/staging branch can be introduced later if a team grows; the template doesn't assume one.
+* `main` is the only long-lived branch. It always passes CI.
+* Work branches follow `type/issue-short-description`. See the naming rules.
+* The template assumes no `dev` or staging branch. Add one between feature branches and `main` if your team grows.
 
-> ✅ **Tip**: if you plan to ship your own product from this template, introduce a `dev` (integration) branch between feature branches and `main`, especially with multiple contributors.
+If you ship your own product from this template, add a `dev` integration branch between feature branches and `main`, especially with multiple contributors.
 
-## ✍️ Naming: the shared convention
+## Naming
 
-All **branches, commits and PR titles** use a `type` prefix. This powers labels, changelogs, and at-a-glance triage.
+Branches, commits, and pull request titles use a `type` prefix. This powers labels, changelogs, and triage.
 
 ### Accepted types
 
-| Type            | Meaning                                 |
-| --------------- | --------------------------------------- |
-| `feat`          | a new feature                           |
-| `fix`           | a bug fix                               |
-| `hotfix`        | an urgent critical fix                  |
-| `refactor`      | restructure without behaviour change    |
-| `style`         | formatting / non-functional             |
-| `test`          | test-only changes                       |
-| `docs`          | documentation changes (like this page!) |
-| `chore`/`infra` | tooling, CI, deps                       |
+| Type       | Meaning                               |
+| ---------- | ------------------------------------- |
+| `feat`     | a new feature                         |
+| `fix`      | a bug fix                             |
+| `hotfix`   | an urgent critical fix                |
+| `refactor` | restructure without behaviour change  |
+| `style`    | formatting and non-functional changes |
+| `test`     | test-only changes                     |
+| `docs`     | documentation changes                 |
+| `chore`    | tooling, CI, dependencies             |
 
-### Commit & PR title
+### Commit and pull request title
 
 ```
 <type>(<optional-scope>): short description
@@ -62,11 +62,11 @@ fix/10-username-not-updating-in-db
 docs/7-clarify-quickstart
 ```
 
-> Commits in this repo's history already follow this (`feat: add template auth`, `fix: Docker errors …`) — keep it that way.
+The repository history already follows this convention, such as `feat: add template auth` and `fix: Docker errors`. Keep it that way.
 
-## 🧑‍💻 Local setup (start dev quickly)
+## Local setup
 
-See [Local Development](../developer-manual/local_development.md) for a full walkthrough. Minimum:
+See [Local Development](../developer-manual/local_development.md) for the full walkthrough. The minimum:
 
 ```bash
 uv sync
@@ -76,38 +76,38 @@ uv run alembic upgrade head
 uv run uvicorn src.main:app --reload --port 8080
 ```
 
-> **Tip**: read the [Conventions](../architecture/conventions.md) page before touching code — formatting, Pydantic v2 style, and ORM style are all covered there.
+Read [Conventions](../architecture/conventions.md) before you change code. It covers formatting, Pydantic v2 style, and the SQLAlchemy style.
 
-## 🧪 Before you open the PR
+## Before you open the pull request
 
 ```bash
 uv run ruff check .
 uv run ruff format --check .
-uv run pytest               # existing + your new tests
+uv run pytest               # existing and new tests
 ```
 
-Install the pre-commit hooks to catch issues on every `git commit`:
+Install the pre-commit hooks to catch issues on every commit:
 
 ```bash
 uv run pre-commit install
 ```
 
-## 🔁 Checklist for a PR to `main`
+## Checklist for a pull request
 
-- [ ] One logical change per PR; clear `feat(...)`/`fix(...)` title.
-- [ ] Code follows [Conventions](../architecture/conventions.md).
-- [ ] New model → added to `alembic/env.py` imports; migration generated; `alembic upgrade head` verified.
-- [ ] Tests added/updated and green, matching `tests/` to `src/`.
-- [ ] Ruff lint & format pass.
-- [ ] Docs updated if the change alters env vars, endpoints, or the package layout.
-- [ ] Rate-limit / pagination / auth changes reviewed for side effects on other packages.
+- [ ] One logical change per request, with a clear `feat(...)` or `fix(...)` title
+- [ ] Follows [Conventions](../architecture/conventions.md)
+- [ ] New model is under `src/<package>/models.py` and discovered automatically, with a migration generated and `alembic upgrade head` verified
+- [ ] Tests pass and match `tests/` to `src/`
+- [ ] Ruff lint and format pass
+- [ ] Docs updated when the change alters environment variables, endpoints, or the package layout
+- [ ] Rate-limit, pagination, or auth changes reviewed for effects on other packages
 
-## 🗣️ Communication
+## Communication
 
-- Prefer GitHub Issues for proposals/bugs and PRs for concrete changes.
-- For cross-cutting architecture questions, open an issue with the `[RFC]` prefix so others can weigh in before a large diff.
-- Mention how you tested and attach logs where relevant (logs help the most).
+* Prefer GitHub Issues for proposals and bugs, and pull requests for concrete changes.
+* For architecture questions, open an issue with a `[RFC]` prefix so others weigh in before a large diff.
+* Mention how you tested, and attach logs.
 
-## 📄 By contributing
+## By contributing
 
-You agree that your contributions are licensed under the same terms as the project's [MIT LICENSE](../LICENSE).
+Your contributions are licensed under the same terms as the project's [MIT LICENSE](../LICENSE).

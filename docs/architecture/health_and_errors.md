@@ -1,37 +1,37 @@
-# Health Checks & Error Handling
+# Health Checks and Error Handling
 
-Every process needs liveness/readiness probes for orchestration, and consistent error responses for consumers. Both are wired in this template at **startup in `src/main.py`** plus a tiny `src/health/` package.
+Every process needs liveness and readiness probes for orchestration, and consistent error responses for consumers. The template wires both at startup in `src/main.py`, plus a small `src/health/` package.
 
-## 🟢 Health endpoints
+## Health endpoints
 
-`src/health/router.py` exposes two public (unauthenticated, unrate-limited) probes:
+`src/health/router.py` exposes two public probes. They are unauthenticated and not rate-limited.
 
-| Endpoint       | Kind          | Behaviour                                                                                                         |
-| -------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `GET /healthz` | **liveness**  | always `200` with `{"status":"ok"}` as long as the process is alive                                               |
-| `GET /readyz`  | **readiness** | runs `SELECT 1` against PostgreSQL → `200 {"status":"ready"}` or `503 {"status":"unavailable"}` if the DB is down |
+| Endpoint       | Kind      | Behaviour                                                                                                                                        |
+| -------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /healthz` | liveness  | returns `200` with `{"status":"ok"}` as long as the process is alive                                                                             |
+| `GET /readyz`  | readiness | runs `SELECT 1` against PostgreSQL. Returns `200` with `{"status":"ready"}`, or `503` with `{"status":"unavailable"}` when the database is down. |
 
 ```bash
 curl http://localhost:8080/healthz   # {"status":"ok"}
 curl http://localhost:8080/readyz    # {"status":"ready"}
 ```
 
-> 🩺 Use `/readyz` as the load-balancer/orchestrator health check — it catches "DB is down" before traffic is routed. `/healthz` is the lightweight "am I up" probe.
+Use `/readyz` as the load-balancer or orchestrator health check. It catches a down database before traffic routes there. `/healthz` is the lightweight "am I up" probe.
 
-## 🏗️ How the app starts and is wired
+## How the app starts and is wired
 
-`src/main.py` is **declarative top-down glue**. Reading it top-to-bottom shows the whole runtime:
+`src/main.py` is declarative, top-down glue. Reading it top to bottom shows the runtime.
 
-1. `configure_logging(...)` — structlog setup from settings.
+1. `configure_logging(...)` sets up structlog from settings.
 2. Build `app = FastAPI(title=...)`.
-3. Attach slowapi: `app.state.limiter = limiter` + the `RateLimitExceeded` → **429** handler.
-4. Register middleware (outermost last): **CORS → security headers → request-ID**.
-5. Include routers: health, package, auth.
+3. Attach slowapi: `app.state.limiter = limiter` and the `RateLimitExceeded` handler, which returns 429.
+4. Register middleware. The last one added is outermost: CORS, then security headers, then request-ID.
+5. Include the routers: health, package, auth.
 6. Register the central `AuthError` handler.
 
-## 🐛 Domain error handling (one central map)
+## Domain error handling
 
-Bigger domains raise **typed exceptions**, and `main.py` holds a tiny map from exception → HTTP status:
+Bigger domains raise typed exceptions, and `main.py` holds a small map from exception to HTTP status:
 
 ```python
 STATUS_BY_AUTH_ERROR = {
@@ -48,11 +48,11 @@ async def auth_error_handler(request: Request, error: AuthError):
     # ...
 ```
 
-Why this pattern? **The endpoint raises intent (`UserAlreadyExists`), and one reviewer-friendly place decides the mapping.** Adding a 5xx? You see it in one table, not scattered across handlers.
+The endpoint raises intent, such as `UserAlreadyExists`, and one reviewer-friendly place decides the mapping. Adding a 500 means editing one table, not hunting through handlers.
 
-## 🧪 Rate-limit response
+## Rate-limit response
 
-slowapi is registered globally, so any endpoint guarded by `@limiter.limit(...)` that exceeds its quota gets:
+slowapi is registered globally. Any endpoint guarded by `@limiter.limit()` that exceeds its quota returns:
 
 ```json
 {
@@ -60,16 +60,16 @@ slowapi is registered globally, so any endpoint guarded by `@limiter.limit(...)`
 }
 ```
 
-with HTTP status **429** (see [Core Cross-cutting](../developer-manual/core_crosscutting.md)).
+with HTTP status 429. See [Core Cross-cutting Features](../developer-manual/core_crosscutting.md).
 
-## 📦 Error envelope
+## Error envelope
 
-Responses intentionally reuse the FastAPI `{"detail": ...}` envelope for simplicity and to keep validation errors (422) identical across the app — see [Conventions](conventions.md). Auth errors include a `WWW-Authenticate: Bearer` header on `401` so clients know how to authenticate.
+Responses reuse the FastAPI `{"detail": ...}` envelope for simplicity and to keep validation errors, 422, identical across the app. See [Conventions](conventions.md). Auth errors add a `WWW-Authenticate: Bearer` header on 401 so clients know how to authenticate.
 
-## ✅ Adding a new domain guard
+## Add a domain guard
 
-1. In the new package define `class MyError(Exception)` and subclasses in `src/<pkg>/exceptions.py`.
+1. In the new package, define `class MyError(Exception)` and subclasses in `src/<pkg>/exceptions.py`.
 2. Raise them from `src/<pkg>/service.py`.
-3. Register a handler (or extend the map approach) in `main.py` mapping them to a status.
+3. Register a handler, or extend the map approach, in `main.py` to map them to status codes.
 
-> 🔀 Compare: the `package/` example raises `HTTPException` directly because it has no custom errors. For a real domain, prefer explicit exceptions + a central map.
+The `package/` example raises `HTTPException` directly because it has no custom errors. For a real domain, prefer explicit exceptions and a central map.

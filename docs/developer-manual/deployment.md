@@ -1,19 +1,19 @@
 # Deployment
 
-This page explains how the repository is built, tested, and prepared for deployment. The repo ships a **CI + Docker** setup that keeps you one step away from any host that can run containers.
+This page explains how to build, test, and prepare the repository for deployment. It ships a CI and Docker setup that works on any host that can run containers.
 
-> ℹ️ This project is a **template**. It has no staging/production infrastructure baked in; instead it provides the repeatable pieces (Docker, a CI workflow, migrations) plus the deploy guidance below.
+This project is a template. It has no staging or production infrastructure. It provides the repeatable pieces: a Dockerfile, a CI workflow, migrations, and the guidance below.
 
-## 📦 Deliverables
+## Deliverables
 
-| Asset                      | Purpose                                                           |
-| -------------------------- | ----------------------------------------------------------------- |
-| `Dockerfile`               | Builds the API image (uv, runtime deps only).                 |
-| `compose.yaml`             | Runs `fastapi` (port `8080`) + `postgres` (port `5432`).          |
-| `.github/workflows/ci.yml` | Lint + format + tests on every push/PR.                           |
-| `alembic/`                 | Database schema migrations, applied on the host before/at deploy. |
+| Asset                      | Purpose                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| `Dockerfile`               | Builds the API image with uv and runtime dependencies only.  |
+| `compose.yaml`             | Runs `fastapi` on port `8080` and `postgres` on port `5432`. |
+| `.github/workflows/ci.yml` | Runs lint, format, and tests on every push and pull request. |
+| `alembic/`                 | Database migrations, applied on the host at deploy time.     |
 
-## 🐳 The production image (Dockerfile)
+## The production image
 
 ```dockerfile
 FROM python:3.10-alpine3.20
@@ -23,34 +23,32 @@ RUN uv sync --no-dev --frozen   # runtime deps only, from the committed lock
 CMD ["uv", "run", "--frozen", "fastapi", "run", "src/main.py", "--reload", "--port", "8080"]
 ```
 
-Key points:
+* `--no-dev` installs only runtime dependencies. Ruff, pytest, and pre-commit never ship to production.
+* `--frozen` installs exactly what `uv.lock` pins, so the image is reproducible.
+* No `.env` is baked into the image. Configuration arrives at runtime as environment variables. `compose.yaml` provides them locally; your platform provides them in production. Inside a container the database is `fastapi-postgres`, not `localhost`.
+* `--reload` in the `CMD` is for development. For production, drop `--reload`, and add `--workers` behind a load balancer if you need concurrency.
 
-* Installs **runtime** dependencies only (`--no-dev`) — Ruff, pytest & pre-commit never ship to production.
-* `--frozen` installs exactly from the committed `uv.lock`, so the image is reproducible.
-* **No `.env` is baked into the image.** Configuration is injected at runtime via environment variables (`compose.yaml` does this for local, your platform for prod). Inside a container the database is `fastapi-postgres`, **not** `localhost`.
-* The `--reload` flag in the `CMD` is development-oriented; for production you will typically drop `--reload` (and may add `--workers` behind a load balancer).
+The image exposes port `8080`. Route external traffic there, or remap it in `compose.yaml`.
 
-> ⚠️ The image prepares port `8080`. Route external traffic there (or remap via Compose as `compose.yaml` does).
+## CI pipeline
 
-## 🧱 CI/CD pipeline (GitHub Actions)
+`.github/workflows/ci.yml` triggers on push and pull request.
 
-`.github/workflows/ci.yml` triggers on **push and pull_request**:
+| Stage                | Command                        | Purpose                     |
+| -------------------- | ------------------------------ | --------------------------- |
+| Provision PostgreSQL | `postgres:16.2-alpine` service | gives tests a real database |
+| Install uv and deps  | `uv sync --frozen`             | uv `0.12.10`                |
+| Ruff lint            | `uv run ruff check .`          | code style                  |
+| Ruff format          | `uv run ruff format --check .` | formatting                  |
+| Tests                | `uv run pytest -q`             | runs the full suite         |
 
-| Stage                | Command                         | Purpose                     |
-| -------------------- | ------------------------------- | --------------------------- |
-| Provision PostgreSQL | `postgres:16.2-alpine` service  | gives tests a real database |
-| Install uv & deps    | `uv sync --frozen`              | uv `0.12.10`                |
-| Ruff lint            | `uv run ruff check .`           | code style/correctness      |
-| Ruff format          | `uv run ruff format --check .`  | formatting                  |
-| Tests                | `uv run pytest -q`              | runs the full suite         |
+The workflow sets `DB_URL`, `TEST_DB_URL`, and `AUTH_SECRET_KEY` as `env` values.
 
-Required environment (provided as workflow `env`): `DB_URL`, `TEST_DB_URL`, `AUTH_SECRET_KEY`.
+The pipeline is test-first. Nothing advances unless the checks pass. It does not build or push Docker images. Add a build job when you have a registry.
 
-> 🔁 The pipeline is deliberately **test-first** — nothing advances unless the checks pass. It does **not** build/push Docker by default; add a `build` job (below) when you have a registry.
+### Build and push an image
 
-### Adding image build + push to a registry
-
-A minimal extension that builds and pushes after tests pass:
+This extension builds and pushes after tests pass:
 
 ```yaml
   build:
@@ -71,34 +69,34 @@ A minimal extension that builds and pushes after tests pass:
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
 ```
 
-## 🚢 Deploying the API
+## Deploy the API
 
-There is no single "correct" host for a template; pick one and apply the same steps:
+Pick a host and apply the same steps.
 
-1. **Provision PostgreSQL** accessible to the app (or run it with Compose as in development).
-2. **Set real environment variables** — never rely on a committed `.env`. Inject `DB_URL`, `AUTH_SECRET_KEY`, `ENVIRONMENT=production`, and tune `LOG_FORMAT=json`, `CORS_ORIGINS`, `LOG_LEVEL` via your platform (env vars **override** the `.env` file thanks to `pydantic-settings`).
-3. **Run Alembic migrations** once, pointing at the real database:
+1. Provision PostgreSQL reachable from the app. Run it with Compose as in development if you like.
+2. Set real environment variables. Do not rely on a committed `.env`. Set `DB_URL`, `AUTH_SECRET_KEY`, and `ENVIRONMENT=production`. Tune `LOG_FORMAT=json`, `CORS_ORIGINS`, and `LOG_LEVEL` on your platform. Environment variables override the `.env` file through `pydantic-settings`.
+3. Run the migrations against the real database:
    ```bash
    uv run alembic upgrade head
    ```
-4. **Start the image** and expose port `8080`.
-5. **Configure load balancing / TLS** in front; set `ENVIRONMENT=production` so `Strict-Transport-Security` is added.
+4. Start the image and expose port `8080`.
+5. Put load balancing and TLS in front. Set `ENVIRONMENT=production` so `Strict-Transport-Security` is added.
 
-> 🩺 Use the readiness probe `/readyz` as your orchestrator health check — it fails (503) when the database is unreachable. `/healthz` is the lighter liveness check.
+Use `/readyz` as the orchestrator health check. It returns 503 when the database is unreachable. `/healthz` is the lighter liveness check.
 
-## 🔍 Tuning for production scale
+## Tuning for production scale
 
-* **Workers**: run multiple uvicorn workers for concurrency (`--workers N`) behind a load balancer.
-* **Rate limiting**: the default slowapi backend is **in-memory and per-process**. With multiple workers, switch to a Redis-backed key function so limits are shared.
-* **Logs**: keep `LOG_FORMAT=json` so structured logs land cleanly in your aggregator.
-* **Secrets**: rotate `AUTH_SECRET_KEY` via your secret store at deploy time.
+* **Workers.** Run several uvicorn workers with `--workers N` behind a load balancer for concurrency.
+* **Rate limiting.** The default slowapi backend is in-memory and per-process. With multiple workers, switch to a Redis-backed key function so limits are shared.
+* **Logs.** Keep `LOG_FORMAT=json` so structured logs land cleanly in your aggregator.
+* **Secrets.** Rotate `AUTH_SECRET_KEY` through your secret store at deploy time.
 
-## 📌 Deployment checklist
+## Deployment checklist
 
-- [ ] Database reachable + migrations applied
+- [ ] Database reachable and migrations applied
 - [ ] `ENVIRONMENT=production`
-- [ ] Strong `AUTH_SECRET_KEY` injected (not committed)
-- [ ] `LOG_FORMAT=json`, correct `LOG_LEVEL`
-- [ ] `CORS_ORIGINS` set to your real frontend origins (else disabled)
+- [ ] Strong `AUTH_SECRET_KEY` injected, not committed
+- [ ] `LOG_FORMAT=json` and correct `LOG_LEVEL`
+- [ ] `CORS_ORIGINS` set to your real frontend origins, or empty
 - [ ] Readiness probe wired to `/readyz`
-- [ ] Multi-worker rate limiting resolved (Redis) if >1 worker
+- [ ] Multi-worker rate limiting resolved with Redis if more than one worker

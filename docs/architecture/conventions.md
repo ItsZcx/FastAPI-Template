@@ -1,32 +1,34 @@
 # Conventions
 
-This page records the **rules of the codebase** — the ones enforced by tooling and the conventions the maintainer expects. Following them keeps contributions uniform.
+This page records the rules of the codebase. Some are enforced by tooling; the rest are judgment calls a reviewer looks for. Following them keeps contributions uniform.
 
-> ✅ The repo enforces the *toolable* parts automatically with **Ruff** (lint + format) and in **CI**. The rest are judgment calls a reviewer will look for.
+The repo enforces the toolable parts automatically with Ruff and CI. The rest are conventions.
 
-## ⌨️ Git commit style
+## Git commit style
 
-This repository uses **Conventional Commits** with a type prefix (found in `git log` and encouraged for contributors):
+This repo uses Conventional Commits with a type prefix.
 
 ```
 <type>(<scope>): short description
 ```
 
-Examples actually present in the history and their meaning:
+Examples from the history:
 
-| Message                                             | Type meaning                      |
-| --------------------------------------------------- | --------------------------------- |
-| `feat: add template auth`                           | new feature                       |
-| `fix: Docker errors x2`                             | bug fix                           |
-| `docs(api): update README with usage examples`      | documentation change (with scope) |
-| `feat: manage env variables with pydantic-settings` | new feature                       |
+| Message                                             | Type meaning                     |
+| --------------------------------------------------- | -------------------------------- |
+| `feat: add template auth`                           | new feature                      |
+| `fix: Docker errors x2`                             | bug fix                          |
+| `docs(api): update README with usage examples`      | documentation change, with scope |
+| `feat: manage env variables with pydantic-settings` | new feature                      |
 
-Common types: `feat`, `fix`, `refactor`, `style`, `test`, `docs`, `chore`, `infra`. Scope (e.g. `auth`, `db`, `docker`) is optional and clarifies the area changed.
+Common types are `feat`, `fix`, `refactor`, `style`, `test`, `docs`, `chore`, and `infra`. A scope such as `auth`, `db`, or `docker` is optional and names the area changed.
 
-## 🧹 Import style (enforced by Ruff `isort`)
+## Import style
 
-* One import per line, alphabetically ordered.
-* Within a package, standard library / third-party / first-party are grouped (Ruff handles ordering).
+Ruff `isort` enforces this.
+
+* One import per line, in alphabetical order.
+* Standard library, third-party, and first-party imports are grouped. Ruff sorts them.
 
 ```python
 from starlette import status
@@ -35,14 +37,16 @@ from src.core.database import db_dependency
 from src.package.models import Todos
 ```
 
-## 🐦 Pydantic v2 (not the deprecated v1 style)
+## Pydantic v2
 
-* Use `model_config = ConfigDict(...)` — **not** `class Config`.
-* For read models backed by ORM objects use `ConfigDict(from_attributes=True)`.
-* Provide example payloads via `json_schema_extra` so Swagger shows realistic values.
-* Read request data with `.model_dump()` (never v1 `.dict()`).
+Use v2 style, not the deprecated v1 style.
 
-Example (from `src/package/schemas.py`):
+* Use `model_config = ConfigDict(...)`, not `class Config`.
+* For read models backed by ORM objects, use `ConfigDict(from_attributes=True)`.
+* Provide example payloads through `json_schema_extra` so Swagger shows real values.
+* Read request data with `.model_dump()`, never v1 `.dict()`.
+
+Example:
 
 ```python
 class UserRead(UserBase):
@@ -52,60 +56,60 @@ class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
 ```
 
-## 🐘 SQLAlchemy style
+## SQLAlchemy style
 
-* Models are declared **classic-style** with `Column(...)` and inherit `Base` from `src.core.database` (not a bare import from SQLAlchemy).
-* Use `db_dependency` typed sessions in endpoints; never hand-roll a session.
-* Unique fields get `unique=True`; list lookups commonly get `index=True`.
+* Declare models classic-style with `Column(...)`, inheriting `Base` from `src.core.database`, not a bare import from SQLAlchemy.
+* Use the `db_dependency` typed session in endpoints. Do not hand-roll a session.
+* Unique fields get `unique=True`. Fields used for list lookups get `index=True`.
 * Timestamps use `DateTime(timezone=True)` with `server_default=func.now()` and `onupdate`.
 
-## 🗂️ Naming & types
+## Naming and types
 
-* `python = "^3.10"` — feel free to use modern syntax (`str | None`, `list[Todo]`, `Annotated[...]`).
-* Type-annotate function signatures; the codebase leans into `Annotated` for dependencies (e.g. `db_dependency`, `current_user_dependency`).
-* Follow Python naming: modules lowercase, functions `snake_case`, models/schemas/classes `PascalCase`.
+* The project targets Python 3.10. Use modern syntax such as `str | None`, `list[Todo]`, and `Annotated[...]`.
+* Type-annotate function signatures. The codebase uses `Annotated` heavily for dependencies, such as `db_dependency` and `current_user_dependency`.
+* Follow Python naming. Modules are lowercase, functions are `snake_case`, and models and schemas are `PascalCase`.
 
-## 🧩 Error handling
+## Error handling
 
-Custom domain errors are small classes raised in `service.py` and mapped to HTTP in **one place**.
+Custom domain errors are small classes raised in `service.py` and mapped to HTTP status codes in one place.
 
-* Auth uses `AuthError` subclasses and maps them centrally in `src/main.py` (see [Health Checks & Error Handling](health_and_errors.md)).
-* Simpler endpoints may raise `HTTPException` directly (the `package/` example does), but large domains should prefer explicit exceptions.
+* Auth raises `AuthError` subclasses and maps them centrally in `src/main.py`. See [Health Checks & Error Handling](health_and_errors.md).
+* Simpler endpoints may raise `HTTPException` directly, as the `package/` example does. Large domains should prefer explicit exceptions.
 
-## 📍 Endpoint conventions
+## Endpoint conventions
 
-* Router prefix + tag set the URL and Swagger grouping:
+* A router's prefix and tag set the URL and Swagger group:
   ```python
   router = APIRouter(prefix="/todos", tags=["Todos"])
   ```
-* Use `status.HTTP_204_NO_CONTENT` etc. from `starlette` for response codes.
-* Read models are returned through `response_model=...` so hashed/password fields never leak.
+* Use status codes from `starlette`, such as `status.HTTP_204_NO_CONTENT`.
+* Return read models through `response_model=...` so hashed and password fields never leak.
 
-## 📄 Code formatting (Ruff)
+## Code formatting
 
-Key `pyproject.toml` [ruff] settings you inherit:
+Ruff reads these settings from `pyproject.toml`:
 
 * `target-version = "py310"`
 * `line-length = 120`
-* double quotes; space indentation (4); LF endings
-* `fix = true` — running `ruff check .` can auto-fix many lints
+* Double quotes, 4-space indentation, LF line endings
+* `fix = true`. Running `ruff check .` auto-fixes many lints.
 * `[tool.ruff.lint.isort] force-single-line = true`
-* `extend-exclude = [".venv", ".env", "alembic"]` — Alembic versions are conventionally **not** linted, but keep them neat anyway.
+* `extend-exclude = [".venv", ".env", "alembic"]`. Alembic migration files are not linted, but keep them tidy anyway.
 
 ```bash
-uv run ruff check .         # report + autofix
+uv run ruff check .         # report and autofix
 uv run ruff format .        # format files
 ```
 
-## 🧪 Test conventions
+## Test conventions
 
-* Tests live under `tests/` mirroring the `src` layout (`tests/auth/`, `tests/package/`, `tests/test_health.py`).
-* Use the shared fixtures `client` / `db` from `tests/conftest.py`.
-* Prefer hitting real endpoints over unit patching for behaviour; assert on exact status codes (`starlette.status`).
+* Tests live under `tests/`, mirroring `src`: `tests/auth/`, `tests/package/`, and `tests/test_health.py`.
+* Use the shared `client` and `db` fixtures from `tests/conftest.py`.
+* Test real endpoints rather than patching units. Assert on exact `starlette.status` codes.
 
-> See [Testing](testing.md) for the full policy.
+See [Testing](testing.md) for the full policy.
 
-## ✔️ Before you open a PR
+## Before you open a pull request
 
 ```bash
 uv run pre-commit run --all-files   # if pre-commit installed
@@ -114,4 +118,4 @@ uv run ruff format --check .
 uv run pytest
 ```
 
-Ensure your branch merges only code that passes CI (lint + format + tests). Typo-only diffs fail too — the docs are reviewed just like code.
+Merge code that passes CI: lint, format, and tests. Docs are reviewed like code, so typo-only diffs fail too.
