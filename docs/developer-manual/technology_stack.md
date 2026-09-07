@@ -11,7 +11,7 @@ This page documents the technologies, tools, and runtime requirements used by th
 
 ## 🖥️ Web Framework & APIs
 
-* **Framework**: [FastAPI](https://fastapi.dev/) `0.115`\
+* **Framework**: [FastAPI](https://fastapi.dev/) (latest `0.x`, currently `0.141`)\
   Chosen for automatic OpenAPI documentation, pydantic-driven validation, and async support when needed.
 * **ASGI**: [Uvicorn](https://www.uvicorn.org/)\
   The application server used both locally and inside Docker.
@@ -57,7 +57,7 @@ This page documents the technologies, tools, and runtime requirements used by th
 | Component  | Constraint / resolved | Notes                   |
 | ---------- | --------------------- | ----------------------- |
 | Python     | `>=3.10`              | CI + Docker use 3.10    |
-| FastAPI    | `~=0.115`            | `fastapi[standard]`     |
+| FastAPI    | `>=0.141`            | `fastapi[standard]`, latest |
 | SQLAlchemy | `2.0.x`              | classic `Column` models |
 | Alembic    | `1.13+`               |                         |
 | Pydantic   | `2.9+`                | `ConfigDict` era        |
@@ -67,6 +67,7 @@ This page documents the technologies, tools, and runtime requirements used by th
 | pytest     | `9.x`                 |                          |
 | Ruff       | `0.6.x`               |                          |
 | pre-commit | `4.x`                 |                          |
+| starlette  | `>=0.46` (via FastAPI) | ASGI toolkit            |
 
 > ℹ️ Precise locked versions are pinned in `uv.lock`. View them with `uv tree`.
 

@@ -33,6 +33,14 @@ uv run pytest -q            # quiet
 uv run pytest tests/auth    # a single directory
 ```
 
+> ⚠️ **You may see two deprecation warnings** when running tests against the newest FastAPI stack:
+> 1. `StarletteDeprecationWarning` — *"Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead."*
+> 2. `DeprecationWarning` — *"The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead."*
+>
+> Both come from **starlette's `TestClient`** (imported, not our code) and are surfaced
+> intentionally; the app itself starts and runs without warnings. They will disappear
+> once starlette updates `TestClient` to use the new `httpx2`/`anyio.from_thread` paths.
+
 > pytest orchestrates **database creation** for you, so you don't `createdb` manually. Set `TEST_DB_URL` (`.env`/env) only if you want a different name/location.
 
 ## 🧩 What `tests/conftest.py` gives you (fixtures)

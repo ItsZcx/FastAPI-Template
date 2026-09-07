@@ -7,7 +7,7 @@ authors = [{ name = "ItsZcx", email = "joanpaumeridaruiz@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "alembic>=1.13.2,<2.0.0",
-    "fastapi[standard]>=0.115.0,<0.116.0",
+    "fastapi[standard]>=0.141.0",
     "psycopg2-binary>=2.9.9,<3.0.0",
     "pydantic>=2.9.2,<3.0.0",
     "pydantic-settings>=2.5.2,<3.0.0",
